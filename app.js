@@ -26,7 +26,8 @@
   const capBText = document.getElementById('capBText');
   const capWText = document.getElementById('capWText');
   const noteText = document.getElementById('noteText');
-
+  const metaFooter = document.getElementById('metaFooter');
+  
   // 回答UI
   const answerDiffBox = document.getElementById('answerDiffBox');
   const answerWinnerBox = document.getElementById('answerWinnerBox');
@@ -67,6 +68,42 @@
     }
     return bd;
   }
+
+  function applyProblem(p){
+    N = p.size;
+    board = Array.from({length:N}, () => Array(N).fill(0));
+    for(const s of p.stones){ board[s.i][s.j] = (s.c === 'B' ? 1 : 2); }
+  
+    // 既存の情報表示
+    boardSizeText.textContent = `${N}×${N}`;
+    komiText.textContent = `${p.komi}`;
+    capBText.textContent = `${p.capB}`;
+    capWText.textContent = `${p.capW}`;
+    noteText.textContent = p.note || '';
+  
+    // ▼ メタデータ（最下部）表示
+    const src = p.source || {};
+    const origin = src.origin || 'KGS';
+    const url = src.url || 'https://gokgs.com/archives.jsp';
+    const players = src.players || {};
+    const pb = players.B || '（黒）不明';
+    const pw = players.W || '（白）不明';
+    const date = src.date || '日付不明';
+    const result = src.result || '結果不明';
+    const rules = src.rules || '（KGSルール）';
+    metaFooter.innerHTML =
+      `<span class="label">出典:</span> <a href="${url}" target="_blank" rel="noopener noreferrer">${origin}</a>` +
+      `<span class="sep">|</span><span class="label">対局者:</span> 黒 ${pb} vs 白 ${pw}` +
+      `<span class="sep">|</span><span class="label">結果:</span> ${result}` +
+      `<span class="sep">|</span><span class="label">日付:</span> ${date}` +
+      `<span class="sep">|</span><span class="label">ルール:</span> ${rules}`;
+  
+    problemIdxEl.textContent = (currentProblemIdx + 1);
+  
+    drawBoard();
+    octx.clearRect(0,0,overlayCanvas.width, overlayCanvas.height);
+  }
+  ``
 
   // ====== Problems: more "game-like" shapes ======
   async function loadProblemsFor(level){
