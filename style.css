@@ -5,6 +5,7 @@ h1 { font-size: 1.3rem; margin-bottom: 8px; }
 .panel { padding: 10px; background: #f5f5f5; border-radius: 8px; }
 .inputs { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
 .mono { font-family: ui-monospace, Menlo, Consolas, "Courier New", monospace; }
+select { padding: 4px 6px; }
 .btn { padding: 6px 10px; border: 1px solid #999; border-radius: 6px; background: white; cursor: pointer; }
 .btn:hover { background: #eee; }
 #boardWrap { position: relative; width: min(90vw, 600px); }
