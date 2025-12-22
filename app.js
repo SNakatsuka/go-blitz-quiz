@@ -69,114 +69,37 @@
   }
 
   // ====== Problems: more "game-like" shapes ======
-  function buildProblemsFor(n){
-    const arr = [];
-    if(n === 9){
-      // 9路: corner frameworks / side walls / simple fights
-      { const bd=emptyBoard(n);
-        // 黒：上左隅〜上辺に壁、白：右下隅を地に
-        wallPolyline(bd,1, [[1,1],[3,1],[3,2],[5,2],[5,3],[7,3]]);
-        ringRect(bd,2, 5,5, 7,7); // 白の小地
-        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'9路: 上辺黒の壁と右下白地', note:'簡単な隅地 + 片側模様' });
-      }
-      { const bd=emptyBoard(n);
-        // 黒：左辺〜中央へ厚み、白：下辺に壁
-        wallPolyline(bd,1, [[1,2],[1,4],[2,5],[3,5],[4,6]]);
-        wallPolyline(bd,2, [[2,7],[4,7],[6,7]]);
-        ringRect(bd,1, 2,2, 4,4); // 黒小地
-        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'9路: 左厚み＋下白壁', note:'隅・辺に実戦風の厚み' });
-      }
-      { const bd=emptyBoard(n);
-        // 黒：右上隅を確保、白：左下隅確保、中央は中立になりがち
-        ringRect(bd,1, 5,1, 7,3);
-        ringRect(bd,2, 1,5, 3,7);
-        // 中央に雑石
-        place(bd,1, [[4,4]]); place(bd,2, [[4,5]]);
-        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'9路: 右上黒/左下白＋中央接触', note:'中央は中立の可能性' });
-      }
-      { const bd=emptyBoard(n);
-        // 黒：上辺長い壁、白：右辺壁で囲いの雰囲気
-        wallPolyline(bd,1, [[1,1],[3,1],[5,1],[7,1]]);
-        wallPolyline(bd,2, [[7,1],[7,3],[7,5],[7,7]]);
-        ringRect(bd,1, 2,2, 5,5);
-        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'9路: 上黒長壁＋右白壁', note:'上・右の厚み対決' });
-      }
-      { const bd=emptyBoard(n);
-        // 黒：左下大囲い、白：右上小囲い、境界に斜め
-        ringRect(bd,1, 1,3, 5,7);
-        ringRect(bd,2, 5,1, 7,3);
-        line(bd,2, 4,4, 5,5); // 斜めの境界演出
-        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'9路: 斜め境界演出', note:'中立の取り扱いに注意' });
-      }
-    } else if(n === 13){
-      // 13路: larger moyo; multiple corners
-      { const bd=emptyBoard(n);
-        ringRect(bd,1, 2,2, 5,5);         // 黒左上
-        ringRect(bd,2, 7,7, 10,10);       // 白右下
-        wallPolyline(bd,1, [[3,8],[5,8],[6,7]]);
-        place(bd,2, [[9,3],[10,4]]);      // 白の肩
-        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'13路: 左上黒/右下白＋肩', note:'中央は中立になりやすい' });
-      }
-      { const bd=emptyBoard(n);
-        wallPolyline(bd,1, [[2,3],[2,6],[4,8],[6,9]]);   // 黒縦厚
-        ringRect(bd,2, 8,2, 11,5);                       // 白右上
-        wallPolyline(bd,2, [[6,11],[8,11]]);             // 白下辺
-        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'13路: 黒縦厚＋白右上/下辺', note:'辺の地を見極め' });
-      }
-      { const bd=emptyBoard(n);
-        ringRect(bd,1, 3,3, 9,9);                        // 黒中央広域
-        place(bd,2, [[1,1],[11,11],[1,11],[11,1]]);      // 隅演出
-        wallPolyline(bd,2, [[9,3],[10,4],[10,6]]);       // 白肩付き
-        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'13路: 黒中央広域＋白肩', note:'中央の確定地判定' });
-      }
-      { const bd=emptyBoard(n);
-        ringRect(bd,2, 2,7, 6,11);                       // 白左下広め
-        wallPolyline(bd,1, [[7,2],[10,2],[10,4]]);       // 黒右上辺
-        place(bd,1, [[9,9]]);                            // 黒の目
-        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'13路: 左下白広域＋右上黒辺', note:'辺地＋隅地の混成' });
-      }
-      { const bd=emptyBoard(n);
-        wallPolyline(bd,1, [[3,5],[5,5],[7,5],[9,5]]);   // 黒中央横壁
-        ringRect(bd,2, 9,8, 11,10);                      // 白右下小地
-        ringRect(bd,1, 2,2, 4,4);                        // 黒左上小地
-        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'13路: 中央横壁＋左右小地', note:'壁で分割' });
-      }
-    } else if(n === 19){
-      // 19路: moyo + enclosures; more stones
-      { const bd=emptyBoard(n);
-        ringRect(bd,1, 4,4, 10,10);                      // 黒中央大囲い
-        ringRect(bd,2, 13,13, 16,16);                    // 白右下小地
-        wallPolyline(bd,2, [[1,15],[4,15],[6,14]]);      // 白下辺肩
-        place(bd,1, [[14,4],[15,5]]);                    // 黒右上肩
-        arr.push({ size:n, board:bd, komi:7.5, capB:0, capW:0, title:'19路: 中央黒大＋右下白', note:'コミ7.5（ルール差異演出）' });
-      }
-      { const bd=emptyBoard(n);
-        wallPolyline(bd,1, [[3,3],[6,3],[9,3],[12,3]]);  // 黒上辺長壁
-        wallPolyline(bd,2, [[16,4],[16,7],[16,10]]);     // 白右辺縦壁
-        ringRect(bd,2, 6,12, 9,15);                      // 白左下小地
-        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'19路: 上黒長壁＋右白縦壁', note:'辺の囲い分割' });
-      }
-      { const bd=emptyBoard(n);
-        ringRect(bd,1, 5,5, 14,14);                      // 黒大囲い
-        place(bd,2, [[0,0],[18,18],[0,18],[18,0],[9,18],[18,9]]); // 白周辺演出
-        wallPolyline(bd,2, [[12,6],[13,7],[13,9]]);      // 白肩侵入風
-        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'19路: 黒中央大＋白周辺肩', note:'中央 vs 周辺の構図' });
-      }
-      { const bd=emptyBoard(n);
-        ringRect(bd,2, 3,12, 8,17);                      // 白左下広域
-        ringRect(bd,1, 12,3, 16,7);                      // 黒右上広域
-        wallPolyline(bd,1, [[9,9],[11,9]]);              // 黒中央短壁
-        place(bd,2, [[9,10]]);                           // 白接触
-        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'19路: 斜対称の広域', note:'接触で中立が出やすい' });
-      }
-      { const bd=emptyBoard(n);
-        wallPolyline(bd,1, [[4,8],[6,8],[8,8],[10,8],[12,8]]); // 黒中央横長壁
-        ringRect(bd,2, 14,4, 17,7);                     // 白右上隅地
-        ringRect(bd,1, 2,2, 5,5);                       // 黒左上隅地
-        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'19路: 中央横壁＋隅地', note:'実戦風の分割' });
-      }
-    }
+  async function loadProblemsFor(level){
+    const url = level === 9 ? 'data/problems_9.json'
+               : level === 13 ? 'data/problems_13.json'
+               : 'data/problems_19.json';
+    const res = await fetch(url);
+    const arr = await res.json();
     return arr;
+  }
+  
+  async function loadLevel(level){
+    currentLevel = level;
+    const problems = await loadProblemsFor(level);
+    PROBLEMS_BY_LEVEL[level] = problems;        // 取得したJSONをそのまま使用
+    problemTotalEl.textContent = problems.length;
+    currentProblemIdx = 0;
+    applyProblem(problems[0]);                   // 最初の問題へ
+  }
+  
+  function applyProblem(p){
+    N = p.size;
+    board = Array.from({length:N}, () => Array(N).fill(0));
+    for(const s of p.stones){ board[s.i][s.j] = (s.c === 'B' ? 1 : 2); }
+    boardSizeText.textContent = `${N}×${N}`;
+    komiText.textContent = `${p.komi}`;
+    capBText.textContent = `${p.capB}`;
+    capWText.textContent = `${p.capW}`;
+    noteText.textContent = p.note || '';
+    // 画面のどこかにメタデータ表示（プレイヤー・出典リンクなど）
+    // e.g., statusEl.innerHTML = `出典: <a href="${p.source.url}" target="_blank">${p.source.origin}</a>`;
+    drawBoard();
+    octx.clearRect(0,0,overlayCanvas.width, overlayCanvas.height);
   }
 
   const PROBLEMS_BY_LEVEL = {
