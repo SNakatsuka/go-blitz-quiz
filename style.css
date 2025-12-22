@@ -13,3 +13,23 @@ select, input[type="number"] { padding: 4px 6px; }
 .status { margin-top: 10px; }
 .green { color: #0a7a0a; }
 .red { color: #b30000; }
+.meta-footer {
+  margin-top: 14px;
+  padding: 10px 12px;
+  background: #f0f0f0;
+  border-radius: 8px;
+  color: #333;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.meta-footer a {
+  color: #0645ad;
+  text-decoration: underline;
+}
+.meta-footer .label {
+  color: #666;
+}
+.meta-footer .sep {
+  margin: 0 6px;
+  color: #aaa;
+}
