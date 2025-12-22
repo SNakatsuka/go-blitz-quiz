@@ -1,0 +1,15 @@
+
+body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif; margin: 16px; }
+h1 { font-size: 1.3rem; margin-bottom: 8px; }
+.topbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 10px; }
+.panel { padding: 10px; background: #f5f5f5; border-radius: 8px; }
+.inputs { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.mono { font-family: ui-monospace, Menlo, Consolas, "Courier New", monospace; }
+.btn { padding: 6px 10px; border: 1px solid #999; border-radius: 6px; background: white; cursor: pointer; }
+.btn:hover { background: #eee; }
+#boardWrap { position: relative; width: min(90vw, 600px); }
+#board { width: 100%; height: auto; display: block; background: #d3a052; border-radius: 6px; }
+#overlay { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events: none; }
+.status { margin-top: 10px; }
+.green { color: #0a7a0a; }
+.red { color: #b30000; }
