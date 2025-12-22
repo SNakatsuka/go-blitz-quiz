@@ -1,0 +1,46 @@
+[
+  {
+    "size": 19,
+    "komi": 6.5,
+    "capB": 0,
+    "capW": 0,
+    "title": "19路: 中央黒大囲い＋右下白",
+    "note": "DEMO: 実戦風・コミ考慮で僅差の想定。",
+    "stones": [
+      {"i":4,"j":4,"c":"B"},{"i":10,"j":10,"c":"B"},{"i":4,"j":10,"c":"B"},{"i":10,"j":4,"c":"B"},
+      {"i":13,"j":13,"c":"W"},{"i":16,"j":16,"c":"W"},
+      {"i":1,"j":15,"c":"W"},{"i":4,"j":15,"c":"W"},{"i":6,"j":14,"c":"W"},
+      {"i":14,"j":4,"c":"B"},{"i":15,"j":5,"c":"B"}
+    ],
+    "source": {"origin":"KGS","url":"https://gokgs.com/archives.jsp","players":{"B":"DEMO_PLACEHOLDER","W":"DEMO_PLACEHOLDER"},"result":"B+R"}
+  },
+  {
+    "size": 19,
+    "komi": 6.5,
+    "capB": 0,
+    "capW": 0,
+    "title": "19路: 上黒長壁＋右白縦壁",
+    "note": "DEMO: 辺の囲い分割。中盤終局想定。",
+    "stones": [
+      {"i":3,"j":3,"c":"B"},{"i":6,"j":3,"c":"B"},{"i":9,"j":3,"c":"B"},{"i":12,"j":3,"c":"B"},
+      {"i":16,"j":4,"c":"W"},{"i":16,"j":7,"c":"W"},{"i":16,"j":10,"c":"W"},
+      {"i":6,"j":12,"c":"W"},{"i":9,"j":15,"c":"W"},
+      {"i":2,"j":2,"c":"B"},{"i":5,"j":5,"c":"B"}
+    ],
+    "source": {"origin":"KGS","url":"https://gokgs.com/archives.jsp","players":{"B":"DEMO_PLACEHOLDER","W":"DEMO_PLACEHOLDER"},"result":"W+R"}
+  },
+  {
+    "size": 19,
+    "komi": 7.5,
+    "capB": 0,
+    "capW": 0,
+    "title": "19路: 斜対称の広域（コミ7.5例）",
+    "note": "DEMO: 接触で中立発生。コミ差を体感。",
+    "stones": [
+      {"i":12,"j":3,"c":"B"},{"i":16,"j":7,"c":"B"},{"i":3,"j":12,"c":"W"},{"i":8,"j":17,"c":"W"},
+      {"i":12,"j":8,"c":"B"},{"i":14,"j":4,"c":"W"},
+      {"i":9,"j":9,"c":"B"},{"i":11,"j":9,"c":"B"},{"i":9,"j":10,"c":"W"}
+    ],
+    "source": {"origin":"KGS","url":"https://gokgs.com/archives.jsp","players":{"B":"DEMO_PLACEHOLDER","W":"DEMO_PLACEHOLDER"},"result":"W+0.5"}
+  }
+]
