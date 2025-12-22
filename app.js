@@ -1,3 +1,4 @@
+
 (function(){
   // ====== Elements & State ======
   const boardCanvas = document.getElementById('board');
@@ -27,7 +28,7 @@
   const capWText = document.getElementById('capWText');
   const noteText = document.getElementById('noteText');
   const metaFooter = document.getElementById('metaFooter');
-  
+
   // 回答UI
   const answerDiffBox = document.getElementById('answerDiffBox');
   const answerWinnerBox = document.getElementById('answerWinnerBox');
@@ -40,8 +41,11 @@
   const restartBtn = document.getElementById('restartBtn');
   const statusEl = document.getElementById('status');
 
+  // ▼ 追加：問題キャッシュ（fetch結果を格納）
+  const PROBLEMS_BY_LEVEL = {};
+
   // ====== Utility: board ops ======
-  function emptyBoard(n){ return Array.from({length:n}, ()=>Array(n).fill(0)); }
+  function emptyBoard(n){ return Array.from({length:n}, () => Array(n).fill(0)); }
   function place(bd, color, coords){ for(const [i,j] of coords){ bd[i][j] = color; } }
   function line(bd, color, x1,y1,x2,y2){
     // Bresenham-like simple step for straight lines (only horizontal/vertical/diag at 45°)
@@ -69,18 +73,52 @@
     return bd;
   }
 
+  // ====== Problems (external JSON) ======
+  async function loadProblemsFor(level){
+    const url = level === 9 ? 'data/problems_9.json'
+               : level === 13 ? 'data/problems_13.json'
+               : 'data/problems_19.json';
+    const res = await fetch(url);
+    if(!res.ok){
+      throw new Error(`Failed to load ${url}: ${res.status} ${res.statusText}`);
+    }
+    const arr = await res.json();
+    return arr;
+  }
+
+  async function loadLevel(level){
+    currentLevel = level;
+    const problems = await loadProblemsFor(level);
+    PROBLEMS_BY_LEVEL[level] = problems;        // 取得したJSONをそのまま使用
+    problemTotalEl.textContent = problems.length;
+    currentProblemIdx = 0;
+    applyProblem(problems[0]);                  // 最初の問題へ
+    statusEl.innerHTML = `レベル ${level}路盤を開始しました。回答形式を選んで「答え合わせ」。`;
+  }
+
+  // ▼ 追加：次の問題に進むときに使う
+  function loadProblem(idx){
+    currentProblemIdx = idx;
+    const p = PROBLEMS_BY_LEVEL[currentLevel][idx];
+    applyProblem(p);
+    problemIdxEl.textContent = (idx + 1);
+    ansDiff.value = '0';
+    ansWinner.value = 'black';
+    ansMargin.value = '0.5';
+  }
+
   function applyProblem(p){
     N = p.size;
     board = Array.from({length:N}, () => Array(N).fill(0));
     for(const s of p.stones){ board[s.i][s.j] = (s.c === 'B' ? 1 : 2); }
-  
-    // 既存の情報表示
+
+    // 情報表示
     boardSizeText.textContent = `${N}×${N}`;
     komiText.textContent = `${p.komi}`;
     capBText.textContent = `${p.capB}`;
     capWText.textContent = `${p.capW}`;
     noteText.textContent = p.note || '';
-  
+
     // ▼ メタデータ（最下部）表示
     const src = p.source || {};
     const origin = src.origin || 'KGS';
@@ -97,53 +135,12 @@
       `<span class="sep">|</span><span class="label">結果:</span> ${result}` +
       `<span class="sep">|</span><span class="label">日付:</span> ${date}` +
       `<span class="sep">|</span><span class="label">ルール:</span> ${rules}`;
-  
+
     problemIdxEl.textContent = (currentProblemIdx + 1);
-  
+
     drawBoard();
     octx.clearRect(0,0,overlayCanvas.width, overlayCanvas.height);
   }
-  ``
-
-  // ====== Problems: more "game-like" shapes ======
-  async function loadProblemsFor(level){
-    const url = level === 9 ? 'data/problems_9.json'
-               : level === 13 ? 'data/problems_13.json'
-               : 'data/problems_19.json';
-    const res = await fetch(url);
-    const arr = await res.json();
-    return arr;
-  }
-  
-  async function loadLevel(level){
-    currentLevel = level;
-    const problems = await loadProblemsFor(level);
-    PROBLEMS_BY_LEVEL[level] = problems;        // 取得したJSONをそのまま使用
-    problemTotalEl.textContent = problems.length;
-    currentProblemIdx = 0;
-    applyProblem(problems[0]);                   // 最初の問題へ
-  }
-  
-  function applyProblem(p){
-    N = p.size;
-    board = Array.from({length:N}, () => Array(N).fill(0));
-    for(const s of p.stones){ board[s.i][s.j] = (s.c === 'B' ? 1 : 2); }
-    boardSizeText.textContent = `${N}×${N}`;
-    komiText.textContent = `${p.komi}`;
-    capBText.textContent = `${p.capB}`;
-    capWText.textContent = `${p.capW}`;
-    noteText.textContent = p.note || '';
-    // 画面のどこかにメタデータ表示（プレイヤー・出典リンクなど）
-    // e.g., statusEl.innerHTML = `出典: <a href="${p.source.url}" target="_blank">${p.source.origin}</a>`;
-    drawBoard();
-    octx.clearRect(0,0,overlayCanvas.width, overlayCanvas.height);
-  }
-
-  const PROBLEMS_BY_LEVEL = {
-    9: buildProblemsFor(9),
-    13: buildProblemsFor(13),
-    19: buildProblemsFor(19)
-  };
 
   // ====== Drawing ======
   function drawBoard(){
@@ -195,9 +192,9 @@
   // ====== Territory calc (flash) ======
   function flashTerritory(bd){
     const n = bd.length;
-    const visited = Array.from({length:n}, ()=>Array(n).fill(false));
+    const visited = Array.from({length:n}, () => Array(n).fill(false));
     let blackTerr=0, whiteTerr=0, neutral=0;
-    const mapTerr = Array.from({length:n}, ()=>Array(n).fill(0));
+    const mapTerr = Array.from({length:n}, () => Array(n).fill(0));
     const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
     const q = [];
 
@@ -249,33 +246,6 @@
         octx.fill();
       }
     }
-  }
-
-  // ====== Game flow ======
-  function loadLevel(level){
-    currentLevel = level;
-    const problems = PROBLEMS_BY_LEVEL[level];
-    problemTotalEl.textContent = problems.length;
-    loadProblem(0);
-    statusEl.innerHTML = `レベル ${level}路盤を開始しました。回答形式を選んで「答え合わせ」。`;
-  }
-
-  function loadProblem(idx){
-    currentProblemIdx = idx;
-    const p = PROBLEMS_BY_LEVEL[currentLevel][idx];
-    N = p.size;
-    board = p.board.map(row => row.slice());
-    boardSizeText.textContent = `${N}×${N}`;
-    komiText.textContent = `${p.komi}`;
-    capBText.textContent = `${p.capB}`;
-    capWText.textContent = `${p.capW}`;
-    noteText.textContent = p.note || '';
-    problemIdxEl.textContent = (idx+1);
-    ansDiff.value = '0';
-    ansWinner.value = 'black';
-    ansMargin.value = '0.5';
-    drawBoard();
-    octx.clearRect(0,0,overlayCanvas.width, overlayCanvas.height);
   }
 
   function round1(x){ return Math.round(x*10)/10; } // 0.1刻み丸め
