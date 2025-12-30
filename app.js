@@ -1,6 +1,6 @@
 (function(){
   // ====== 設定 ======
-  const JSON_PATH = './quiz_19.json'; // Pythonで作った軽量版ファイルを指定
+  const JSON_PATH = './data/problems_19.json'; // Pythonで作った軽量版ファイルを指定
   const BOARD_SIZE = 19;
   const CANVAS_SIZE = 600;
   
