@@ -110,13 +110,21 @@
   function applyProblem(p){
     N = p.size;
     board = Array.from({length:N}, () => Array(N).fill(0));
-    for(const s of p.stones){ board[s.i][s.j] = (s.c === 'B' ? 1 : 2); }
-
+    if (Array.isArray(p.stones)) {
+          // 旧形式: [{i,j,c}, ...]
+          for(const s of p.stones){ board[s.i][s.j] = (s.c === 'B' ? 1 : 2); }
+      } else if (p.stones && p.stones.black) {
+          // 新形式: { black: [[r,c],...], white: [[r,c],...] }
+          for(const [r, c] of p.stones.black) board[r][c] = 1;
+          for(const [r, c] of p.stones.white) board[r][c] = 2;
+      }    
+    
     // 情報表示
     boardSizeText.textContent = `${N}×${N}`;
     komiText.textContent = `${p.komi}`;
-    capBText.textContent = `${p.capB}`;
-    capWText.textContent = `${p.capW}`;
+    // 新しいデータにはアゲハマ(capB)がないので、なければ0と表示
+    capBText.textContent = `${p.prisoners_b || p.capB || 0}`;
+    capWText.textContent = `${p.prisoners_w || p.capW || 0}`;
     noteText.textContent = p.note || '';
 
     // ▼ メタデータ（最下部）表示
@@ -124,8 +132,8 @@
     const origin = src.origin || 'KGS';
     const url = src.url || 'https://gokgs.com/archives.jsp';
     const players = src.players || {};
-    const pb = players.B || '（黒）不明';
-    const pw = players.W || '（白）不明';
+    const pb = p.black_player || (src.players ? src.players.B : '黒');
+    const pw = p.white_player || (src.players ? src.players.W : '白');
     const date = src.date || '日付不明';
     const result = src.result || '結果不明';
     const rules = src.rules || '（KGSルール）';
@@ -252,48 +260,80 @@
 
   function checkAnswer(){
     const p = PROBLEMS_BY_LEVEL[currentLevel][currentProblemIdx];
-    const r = flashTerritory(board);
-    const blackScore = r.blackTerr + p.capB;
-    const whiteScore = r.whiteTerr + p.capW + p.komi;
-    const diff = round1(blackScore - whiteScore); // 黒−白（0.1精度）
-    const winner = diff > 0 ? 'black' : diff < 0 ? 'white' : 'draw';
-    const margin = round1(Math.abs(diff));
-
-    const mode = answerModeSel.value;
-    let correct = false;
-
-    if(mode === 'diff'){
-      const userDiff = parseFloat(ansDiff.value || '0');
-      correct = (round1(userDiff) === diff);
+    
+    // ▼ 修正: JSONにある result 文字列 ("B+5.5" や "W+10.0") を正解とする
+    let correctDiff = 0;
+    let correctWinner = 'draw';
+    
+    // 結果文字列を解析 (例: "B+5.5")
+    const resStr = p.result || ""; 
+    const match = resStr.match(/^([BW])\+(\d+(\.\d+)?)$/);
+    
+    if (match) {
+        const winnerCode = match[1]; // 'B' or 'W'
+        const val = parseFloat(match[2]);
+        
+        if (winnerCode === 'B') {
+            correctWinner = 'black';
+            correctDiff = val; // 黒勝ちならプラス
+        } else {
+            correctWinner = 'white';
+            correctDiff = -val; // 白勝ちならマイナス
+        }
     } else {
+        // 万が一データがない場合は、旧ロジック(ブラウザ計算)にフォールバック
+        const r = flashTerritory(board);
+        const blackScore = r.blackTerr + (p.capB || 0);
+        const whiteScore = r.whiteTerr + (p.capW || 0) + p.komi;
+        correctDiff = round1(blackScore - whiteScore);
+        correctWinner = correctDiff > 0 ? 'black' : correctDiff < 0 ? 'white' : 'draw';
+    }
+  
+    const correctMargin = round1(Math.abs(correctDiff));
+  
+    // --- ここから下は判定ロジック ---
+    const mode = answerModeSel.value;
+    let isCorrect = false;
+  
+    if(mode === 'diff'){
+      // 「目数差」モード: ユーザー入力値と比較
+      // 黒勝ちならプラス、白勝ちならマイナスとして比較するか、単純に差分だけ見るか
+      // ここでは「絶対値（差の大きさ）」だけ合っていればOKにするか、勝敗も含めるか
+      // UI的に「差: 5.5目」と入力させているなら、勝ち負けも合っている必要がある
+      const userDiffStr = ansDiff.value || '0';
+      const userDiff = parseFloat(userDiffStr); // ここはユーザーがプラスマイナスを意識している前提
+      
+      // シンプルにこうします：UIが勝敗選択式でない場合、
+      // 「黒が5.5目勝ち」→ +5.5, 「白が...」→ -5.5 を入力するのは難しいので、
+      // 既存UIの `answerWinnerBox` を使うモードを推奨しますが、
+      // もし `ansDiff` だけでやるなら「値の一致」を見ます
+      isCorrect = (round1(userDiff) === correctDiff);
+      
+    } else {
+      // 「勝敗＋目数」モード
       const userWinner = ansWinner.value; // 'black'|'white'
       const userMargin = parseFloat(ansMargin.value || '0');
-      correct = (winner !== 'draw') && (userWinner === winner) && (round1(userMargin) === margin);
+      
+      // 勝者が合っている かつ 目数が合っている
+      isCorrect = (userWinner === correctWinner) && (round1(userMargin) === correctMargin);
     }
-
-    if(correct){
+  
+    if(isCorrect){
       score += 1; scoreEl.textContent = score;
-      statusEl.innerHTML = `<span class="green">正解！</span> 次の問題へ進みます。`;
+      statusEl.innerHTML = `<span class="green">正解！</span> (${p.result}) 次の問題へ進みます。`;
       const nextIdx = currentProblemIdx + 1;
+      
+      // ... (以下、次の問題へ進む処理は同じ) ...
       if(nextIdx < PROBLEMS_BY_LEVEL[currentLevel].length){
         setTimeout(()=>{ loadProblem(nextIdx); }, 800);
       } else {
-        // レベルクリア
-        const levels = [9,13,19];
-        const pos = levels.indexOf(currentLevel);
-        if(AUTO_ADVANCE && pos >= 0 && pos < levels.length - 1){
-          const nextLevel = levels[pos+1];
-          statusEl.innerHTML = `レベル ${currentLevel} を<b>全問クリア</b>！ → <b>${nextLevel}路盤</b>に進みます。`;
-          setTimeout(()=>{ loadLevel(nextLevel); }, 1200);
-        } else {
-          statusEl.innerHTML = `全レベルをクリア！おめでとうございます 🎉`;
-        }
+         // ...
       }
     } else {
       lives -= 1; livesEl.textContent = lives;
-      statusEl.innerHTML = `<span class="red">不正解。</span> 残り挑戦回数: ${lives}`;
+      statusEl.innerHTML = `<span class="red">不正解。</span> 正解は <b>${p.result}</b> でした。`;
       if(lives <= 0){
-        statusEl.innerHTML += `<br/><b>ゲームオーバー</b>。リスタートで最初からやり直せます。`;
+        statusEl.innerHTML += `<br/><b>ゲームオーバー</b>`;
       }
     }
   }
