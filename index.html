@@ -2,36 +2,26 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>囲碁 BLITZ地合計算 (19路盤)</title>
-  <style>
-    body { font-family: sans-serif; text-align: center; background: #f0f0f0; margin: 0; padding: 20px; }
-    #game-container { display: inline-block; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    canvas { display: block; margin: 10px auto; background: #d3a052; cursor: crosshair; }
-    .controls { margin-top: 15px; display: flex; justify-content: center; gap: 10px; align-items: center; flex-wrap: wrap; }
-    .status { margin: 15px 0; font-weight: bold; min-height: 1.2em; }
-    .green { color: #28a745; } .red { color: #dc3545; }
-    .meta { margin-top: 20px; font-size: 0.85em; color: #666; border-top: 1px solid #eee; padding-top: 10px; }
-    .label { font-weight: bold; color: #444; }
-    .sep { margin: 0 8px; color: #ccc; }
-    
-    /* 入力エリアのスタイル */
-    select, input[type="number"] { padding: 5px; font-size: 16px; width: 80px; }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>囲碁 地合目利きクイズ (19路盤)</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div id="game-container">
-  <h2>囲碁 BLITZ地合計算 (19路盤)</h2>
+  <h2>囲碁 地合目利きクイズ (19路盤)</h2>
   
-  <div style="margin-bottom: 10px;">
-    問題 <span id="problemIdx">--</span> / <span id="problemTotal">--</span>
-    &nbsp;|&nbsp; 残りライフ: <span id="lives">3</span>
-    &nbsp;|&nbsp; スコア: <span id="score">0</span>
+  <div class="status-bar">
+    <span>問題 <span id="problemIdx">--</span> / <span id="problemTotal">--</span></span>
+    <span>残りライフ: <span id="lives">3</span></span>
+    <span>スコア: <span id="score">0</span></span>
   </div>
 
-  <canvas id="board" width="600" height="600"></canvas>
+  <div id="boardWrap">
+    <canvas id="board" width="600" height="600"></canvas>
+  </div>
 
-  <div id="status" class="status">ロード中...</div>
+  <div id="status" class="status-msg">ロード中...</div>
 
   <div class="controls">
     <select id="answerMode">
@@ -51,11 +41,11 @@
       黒 − 白 ＝ <input type="number" id="ansDiff" step="0.5" placeholder="0.0"> 目
     </span>
 
-    <button id="submitBtn" style="padding: 5px 20px; font-weight:bold; cursor:pointer;">答え合わせ</button>
-    <button id="restartBtn" style="cursor:pointer;">リスタート</button>
+    <button id="submitBtn">答え合わせ</button>
+    <button id="restartBtn">リスタート</button>
   </div>
 
-  <div class="meta" id="metaFooter">
+  <div class="meta-footer" id="metaFooter">
     </div>
 </div>
 
