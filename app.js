@@ -75,6 +75,7 @@
     score = 0;
     lives = 3;
     currentIndex = 0;
+    btnSubmit.disabled = false;
     updateStatus();
     elStatus.textContent = "データを読み込んでいます...";
     elStatus.className = "status-msg";
@@ -108,6 +109,7 @@
     updateStatus();
     elStatus.textContent = "";
     elStatus.className = "status-msg";
+    btnSubmit.disabled = false;
     nextProblem();
   }
 
@@ -136,17 +138,27 @@
     elStatus.textContent = "黒地 − 白地 は何目？";
     elStatus.className = "status-msg";
     
-    // フッター更新
+    // フッター更新 (アゲハマを表示に追加)
     const p = currentProblem;
+    
+    // Pythonで作ったデータに prisoners が無い場合の安全策
+    const prisB = (p.prisoners && p.prisoners.black) ? p.prisoners.black : 0;
+    const prisW = (p.prisoners && p.prisoners.white) ? p.prisoners.white : 0;
+
     elFooter.innerHTML = `
-      <div><span class="label">Date:</span> ${p.date} <span class="sep">|</span> 
-           <span class="label">Players:</span> <b>${p.black_player}</b> (B) vs <b>${p.white_player}</b> (W)</div>
-      <div style="font-size:0.85em; color:#888;">Size: ${p.size}路 / Komi: ${p.komi}</div>
+      <div style="margin-bottom:5px;">
+        <span class="label">Date:</span> ${p.date} <span class="sep">|</span> 
+        <span class="label">Players:</span> <b>${p.black_player}</b> (B) vs <b>${p.white_player}</b> (W)
+      </div>
+      <div style="font-size:0.9em; color:#444; background:#eee; padding:4px; border-radius:4px;">
+         Size: ${p.size}路 / Komi: ${p.komi} / 
+         <b>アゲハマ: 黒+${prisB} / 白+${prisW}</b>
+      </div>
     `;
 
     drawBoard(p);
   }
-
+  
   // --- 描画ロジック (サイズ可変対応) ---
   function drawBoard(problem) {
     // 盤面背景
