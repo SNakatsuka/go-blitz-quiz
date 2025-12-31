@@ -8,7 +8,7 @@
   };
 
   // --- グローバル変数 ---
-  let currentSize = 19; // 初期値
+  let currentSize = 9; // 初期値
   let quizData = [];
   let currentIndex = 0;
   let score = 0;
@@ -61,7 +61,7 @@
     });
 
     // 初回ロード (HTMLの初期値19に合わせて起動)
-    loadGameMode(19);
+    loadGameMode(9);
   }
 
   // --- ゲームモード読み込み ---
@@ -145,17 +145,20 @@
     const prisB = (p.prisoners && p.prisoners.black) ? p.prisoners.black : 0;
     const prisW = (p.prisoners && p.prisoners.white) ? p.prisoners.white : 0;
 
-    elFooter.innerHTML = `
-      <div style="margin-bottom:5px;">
-        <span class="label">Date:</span> ${p.date} <span class="sep">|</span> 
-        <span class="label">Players:</span> <b>${p.black_player}</b> (B) vs <b>${p.white_player}</b> (W)
+elFooter.innerHTML = `
+      <div style="font-size: 1.1rem; margin-bottom: 8px; font-weight: bold;">
+        <span class="label">Date:</span> ${p.date} 
+        <span style="margin: 0 10px; color:#ccc;">|</span> 
+        <span class="label">Players:</span> <b>${p.black_player}</b> vs <b>${p.white_player}</b>
       </div>
-      <div style="font-size:0.9em; color:#444; background:#eee; padding:4px; border-radius:4px;">
-         Size: ${p.size}路 / Komi: ${p.komi} / 
-         <b>アゲハマ: 黒+${prisB} / 白+${prisW}</b>
+      
+      <div style="font-size: 1.2rem; color:#333; background:#f0f0f0; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+         Size: ${p.size}路 / Komi: ${p.komi}
+         <span style="margin-left: 15px; color: #d00; font-weight: bold;">
+            アゲハマ: 黒+${prisB} / 白+${prisW}
+         </span>
       </div>
     `;
-
     drawBoard(p);
   }
   
