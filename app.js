@@ -3,8 +3,8 @@
   const CANVAS_SIZE = 600; 
   // モードごとの設定
   const MODES = {
-    9:  { url: './data/Problems_9.json',  size: 9,  starPoints: [2, 6, 4] }, // 9路の星は3-3と天元
-    19: { url: './data/Problems_19.json', size: 19, starPoints: [3, 9, 15] } // 19路の星は4-4と天元
+    9:  { url: 'data/problems_9.json',  size: 9,  starPoints: [2, 6, 4] }, // 9路の星は3-3と天元
+    19: { url: 'data/problems_19.json', size: 19, starPoints: [3, 9, 15] } // 19路の星は4-4と天元
   };
 
   // --- グローバル変数 ---
