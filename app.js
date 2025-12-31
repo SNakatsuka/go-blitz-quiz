@@ -144,21 +144,39 @@
     // Pythonで作ったデータに prisoners が無い場合の安全策
     const prisB = (p.prisoners && p.prisoners.black) ? p.prisoners.black : 0;
     const prisW = (p.prisoners && p.prisoners.white) ? p.prisoners.white : 0;
-
-elFooter.innerHTML = `
-      <div style="font-size: 1.1rem; margin-bottom: 8px; font-weight: bold;">
-        <span class="label">Date:</span> ${p.date} 
-        <span style="margin: 0 10px; color:#ccc;">|</span> 
-        <span class="label">Players:</span> <b>${p.black_player}</b> vs <b>${p.white_player}</b>
+    // 結果の文字列（例: B+5.5）
+    const resultStr = p.result;
+    
+    // ▼▼▼ デザイン修正: アゲハマとコミを明確に表示して、計算の根拠を示す ▼▼▼
+    elFooter.innerHTML = `
+      <div style="font-size: 1.0rem; margin-bottom: 10px; color:#666;">
+        ${p.date} | <b>${p.black_player}</b> vs <b>${p.white_player}</b>
       </div>
       
-      <div style="font-size: 1.2rem; color:#333; background:#f0f0f0; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
-         Size: ${p.size}路 / Komi: ${p.komi}
-         <span style="margin-left: 15px; color: #d00; font-weight: bold;">
-            アゲハマ: 黒+${prisB} / 白+${prisW}
-         </span>
+      <div style="display: flex; justify-content: center; gap: 20px; background:#eef; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+         <div style="text-align:center;">
+            <div style="font-size:0.8rem; color:#666;">盤面サイズ</div>
+            <div style="font-size:1.2rem; font-weight:bold;">${p.size}路</div>
+         </div>
+         <div style="text-align:center; border-left:1px solid #ccc; padding-left:20px;">
+            <div style="font-size:0.8rem; color:#666;">コミ (白へ)</div>
+            <div style="font-size:1.2rem; font-weight:bold;">${p.komi}目</div>
+         </div>
+         <div style="text-align:center; border-left:1px solid #ccc; padding-left:20px;">
+            <div style="font-size:0.8rem; color:#666;">黒のアゲハマ</div>
+            <div style="font-size:1.2rem; font-weight:bold; color:black;">+${prisB}</div>
+         </div>
+         <div style="text-align:center; border-left:1px solid #ccc; padding-left:20px;">
+            <div style="font-size:0.8rem; color:#666;">白のアゲハマ</div>
+            <div style="font-size:1.2rem; font-weight:bold; color:black;">+${prisW}</div>
+         </div>
+      </div>
+
+      <div style="font-size: 1.5rem; font-weight: bold; color: #d00; background: #fff0f0; padding: 10px; border: 2px solid #ecc; border-radius: 8px;">
+         結果: ${resultStr}
       </div>
     `;
+
     drawBoard(p);
   }
   
