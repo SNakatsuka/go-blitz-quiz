@@ -14,7 +14,8 @@
   let score = 0;
   let lives = 3;
   let currentProblem = null;
-
+  let isAnswerVisible = false; // 答えが見えているかどうかのフラグ
+  
   // --- DOM要素 ---
   const canvas = document.getElementById('board');
   const ctx = canvas.getContext('2d');
@@ -120,65 +121,115 @@
   }
 
   function nextProblem() {
+// データがなければ何もしない
+    if (quizData.length === 0) return;
+
+    // まだ全問終わってなければ次へ、終わってれば最初へ（あるいはランダム）
     if (currentIndex >= quizData.length) {
-      finishGame(true);
-      return;
-    }
-    if (lives <= 0) {
-      finishGame(false);
-      return;
+      currentIndex = 0;
     }
 
     currentProblem = quizData[currentIndex];
-    updateStatus();
+    currentIndex++; // 次回のために進める
     
-    // 入力欄リセット
-    inpMargin.value = 0.5;
-    inpDiff.value = "";
-    elStatus.textContent = "黒地 − 白地 は何目？";
-    elStatus.className = "status-msg";
-    
-    // フッター更新 (アゲハマを表示に追加)
+    // ★答えは最初は隠す
+    isAnswerVisible = false;
+
+    // 画面描画
+    updateUI();
+  }
+
+  // ---------------------------------------------
+  // 画面（フッター部分）を更新する関数
+  // ---------------------------------------------
+  function updateUI() {
     const p = currentProblem;
-    
-    // Pythonで作ったデータに prisoners が無い場合の安全策
+    if (!p) return;
+
     const prisB = (p.prisoners && p.prisoners.black) ? p.prisoners.black : 0;
     const prisW = (p.prisoners && p.prisoners.white) ? p.prisoners.white : 0;
-    // 結果の文字列（例: B+5.5）
-    const resultStr = p.result;
-    
-    // ▼▼▼ デザイン修正: アゲハマとコミを明確に表示して、計算の根拠を示す ▼▼▼
-    elFooter.innerHTML = `
+    const resultStr = p.result; 
+
+    // 上段・中段（計算に必要なヒント）は常に見せる
+    let html = `
       <div style="font-size: 1.0rem; margin-bottom: 10px; color:#666;">
         ${p.date} | <b>${p.black_player}</b> vs <b>${p.white_player}</b>
       </div>
       
-      <div style="display: flex; justify-content: center; gap: 20px; background:#eef; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+      <div style="display: flex; justify-content: center; gap: 15px; background:#eef; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
          <div style="text-align:center;">
-            <div style="font-size:0.8rem; color:#666;">盤面サイズ</div>
-            <div style="font-size:1.2rem; font-weight:bold;">${p.size}路</div>
+            <div style="font-size:0.8rem; color:#666;">盤面</div>
+            <div style="font-size:1.1rem; font-weight:bold;">${p.size}路</div>
          </div>
-         <div style="text-align:center; border-left:1px solid #ccc; padding-left:20px;">
-            <div style="font-size:0.8rem; color:#666;">コミ (白へ)</div>
-            <div style="font-size:1.2rem; font-weight:bold;">${p.komi}目</div>
+         <div style="text-align:center; border-left:1px solid #ccc; padding-left:15px;">
+            <div style="font-size:0.8rem; color:#666;">コミ(白へ)</div>
+            <div style="font-size:1.1rem; font-weight:bold;">${p.komi}</div>
          </div>
-         <div style="text-align:center; border-left:1px solid #ccc; padding-left:20px;">
-            <div style="font-size:0.8rem; color:#666;">黒のアゲハマ</div>
-            <div style="font-size:1.2rem; font-weight:bold; color:black;">+${prisB}</div>
+         <div style="text-align:center; border-left:1px solid #ccc; padding-left:15px;">
+            <div style="font-size:0.8rem; color:#666;">黒アゲハマ</div>
+            <div style="font-size:1.1rem; font-weight:bold; color:#d00;">+${prisB}</div>
          </div>
-         <div style="text-align:center; border-left:1px solid #ccc; padding-left:20px;">
-            <div style="font-size:0.8rem; color:#666;">白のアゲハマ</div>
-            <div style="font-size:1.2rem; font-weight:bold; color:black;">+${prisW}</div>
+         <div style="text-align:center; border-left:1px solid #ccc; padding-left:15px;">
+            <div style="font-size:0.8rem; color:#666;">白アゲハマ</div>
+            <div style="font-size:1.1rem; font-weight:bold; color:#d00;">+${prisW}</div>
          </div>
-      </div>
-
-      <div style="font-size: 1.5rem; font-weight: bold; color: #d00; background: #fff0f0; padding: 10px; border: 2px solid #ecc; border-radius: 8px;">
-         結果: ${resultStr}
       </div>
     `;
 
+    // 下段：答えを表示するか、ボタンを表示するか
+    if (!isAnswerVisible) {
+        // ▼▼▼ 隠している状態（ボタン表示） ▼▼▼
+        html += `
+          <button id="btnShowAnswer" 
+            style="
+              width: 100%; 
+              font-size: 1.3rem; 
+              padding: 15px; 
+              background-color: #2196F3; 
+              color: white; 
+              border: none; 
+              border-radius: 8px; 
+              cursor: pointer; 
+              font-weight: bold;
+              box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            "
+            onclick="showAnswer()"
+          >
+            答え合わせをする
+          </button>
+        `;
+    } else {
+        // ▼▼▼ 答えを表示している状態 ▼▼▼
+        // 勝った方を判定して色を変えるなどの演出はお好みで
+        html += `
+          <div style="
+            font-size: 1.8rem; 
+            font-weight: bold; 
+            color: #d32f2f; 
+            background: #ffebee; 
+            padding: 15px; 
+            border: 2px solid #ef5350; 
+            border-radius: 8px;
+            animation: fadeIn 0.5s;
+          ">
+             結果: ${resultStr}
+          </div>
+          <div style="margin-top:5px; font-size:0.9rem; color:#888;">
+            (盤面地 + アゲハマ - コミ)
+          </div>
+        `;
+    }
+
+    elFooter.innerHTML = html;
     drawBoard(p);
   }
+// ---------------------------------------------
+  // ボタンが押されたら呼ばれる関数
+  // ---------------------------------------------
+  window.showAnswer = function() { // HTMLから呼べるようにwindowに付ける
+      isAnswerVisible = true;
+      updateUI(); // 表示を更新
+  };
   
   // --- 描画ロジック (サイズ可変対応) ---
   function drawBoard(problem) {
