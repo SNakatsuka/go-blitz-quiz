@@ -1,33 +1,34 @@
 (function(){
-  // --- 設定 ---
   const CANVAS_SIZE = 600; 
-  // モードごとの設定
   const MODES = {
-    9:  { url: './data/problems_9.json',  size: 9,  starPoints: [2, 6, 4] }, // 9路の星は3-3と天元
-    19: { url: './data/problems_19.json', size: 19, starPoints: [3, 9, 15] } // 19路の星は4-4と天元
+    9:  { url: './data/problems_9.json',  size: 9,  starPoints: [2, 6, 4] },
+    19: { url: './data/problems_19.json', size: 19, starPoints: [3, 9, 15] }
   };
 
-  // --- グローバル変数 ---
-  let currentSize = 9; // 初期値
+  let currentSize = 9;
   let quizData = [];
   let currentIndex = 0;
   let score = 0;
   let lives = 3;
   let currentProblem = null;
-  let isAnswerVisible = false; // 答えが見えているかどうかのフラグ
   
-  // --- DOM要素 ---
+  // DOM要素
   const canvas = document.getElementById('board');
   const ctx = canvas.getContext('2d');
-  const sizeSelect = document.getElementById('boardSizeSelect'); // 追加
+  const sizeSelect = document.getElementById('boardSizeSelect');
   
   const elProblemIdx = document.getElementById('problemIdx');
   const elProblemTotal = document.getElementById('problemTotal');
   const elLives = document.getElementById('lives');
   const elScore = document.getElementById('score');
   const elStatus = document.getElementById('status');
-  const elFooter = document.getElementById('metaFooter');
   
+  // ★新設・変更したDOM
+  const elGameInfo = document.getElementById('gameInfo'); 
+  const elResultArea = document.getElementById('resultArea');
+  const btnShowAnswer = document.getElementById('btnShowAnswer');
+  const elFinalResult = document.getElementById('finalResult');
+
   const btnSubmit = document.getElementById('submitBtn');
   const btnRestart = document.getElementById('restartBtn');
   
@@ -39,38 +40,32 @@
   const inpMargin = document.getElementById('ansMargin');
   const inpDiff = document.getElementById('ansDiff');
 
-  // --- 初期化 ---
   function init() {
-    // イベントリスナー設定
     btnSubmit.addEventListener('click', checkAnswer);
     btnRestart.addEventListener('click', restartGame);
-    
+    btnShowAnswer.addEventListener('click', showAnswerDetail); // 内訳ボタン
+
     selMode.addEventListener('change', () => {
       if(selMode.value === 'winner') {
-        boxWinner.style.display = 'inline-block';
+        boxWinner.style.display = 'block';
         boxDiff.style.display = 'none';
       } else {
         boxWinner.style.display = 'none';
-        boxDiff.style.display = 'inline-block';
+        boxDiff.style.display = 'block';
       }
     });
 
-    // ▼ サイズ変更時の処理
     sizeSelect.addEventListener('change', (e) => {
-      const newSize = parseInt(e.target.value, 10);
-      loadGameMode(newSize);
+      loadGameMode(parseInt(e.target.value, 10));
     });
 
-    // 初回ロード (HTMLの初期値19に合わせて起動)
     loadGameMode(9);
   }
 
-  // --- ゲームモード読み込み ---
   async function loadGameMode(size) {
     currentSize = size;
     const config = MODES[size];
     
-    // リセット
     quizData = [];
     currentProblem = null;
     score = 0;
@@ -80,16 +75,12 @@
     updateStatus();
     elStatus.textContent = "データを読み込んでいます...";
     elStatus.className = "status-msg";
-    
-    // 盤面クリア
     ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
     try {
-      const res = await fetch(config.url + '?t=' + new Date().getTime()); // キャッシュ回避
+      const res = await fetch(config.url + '?t=' + new Date().getTime());
       if (!res.ok) throw new Error("File not found");
       quizData = await res.json();
-      
-      // シャッフル
       quizData.sort(() => Math.random() - 0.5);
       
       elProblemTotal.textContent = quizData.length;
@@ -97,7 +88,7 @@
 
     } catch (e) {
       console.error(e);
-      elStatus.textContent = "データの読み込みに失敗しました (" + config.url + ")";
+      elStatus.textContent = "データ読込失敗 (" + config.url + ")";
       elStatus.className = "status-msg red";
     }
   }
@@ -109,7 +100,6 @@
     quizData.sort(() => Math.random() - 0.5);
     updateStatus();
     elStatus.textContent = "";
-    elStatus.className = "status-msg";
     btnSubmit.disabled = false;
     nextProblem();
   }
@@ -121,196 +111,131 @@
   }
 
   function nextProblem() {
-// データがなければ何もしない
     if (quizData.length === 0) return;
-
-    // まだ全問終わってなければ次へ、終わってれば最初へ（あるいはランダム）
-    if (currentIndex >= quizData.length) {
-      currentIndex = 0;
-    }
+    if (currentIndex >= quizData.length) currentIndex = 0;
 
     currentProblem = quizData[currentIndex];
-    currentIndex++; // 次回のために進める
+    currentIndex++; 
     
-    // ★答えは最初は隠す
-    isAnswerVisible = false;
+    // 入力欄クリア
+    inpDiff.value = "";
+    inpMargin.value = "";
+    elStatus.textContent = "";
+    elStatus.className = "status-msg";
+    
+    // 結果エリアを隠してリセット
+    elResultArea.style.display = "none";
+    elFinalResult.innerHTML = "";
+    btnSubmit.disabled = false;
 
-    // 画面描画
     updateUI();
   }
 
-  // ---------------------------------------------
-  // 画面（フッター部分）を更新する関数
-  // ---------------------------------------------
   function updateUI() {
     const p = currentProblem;
     if (!p) return;
 
     const prisB = (p.prisoners && p.prisoners.black) ? p.prisoners.black : 0;
     const prisW = (p.prisoners && p.prisoners.white) ? p.prisoners.white : 0;
-    const resultStr = p.result; 
 
-    // 上段・中段（計算に必要なヒント）は常に見せる
-    let html = `
-      <div style="font-size: 1.0rem; margin-bottom: 10px; color:#666;">
-        ${p.date} | <b>${p.black_player}</b> vs <b>${p.white_player}</b>
-      </div>
-      
-      <div style="display: flex; justify-content: center; gap: 15px; background:#eef; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
-         <div style="text-align:center;">
-            <div style="font-size:0.8rem; color:#666;">盤面</div>
-            <div style="font-size:1.1rem; font-weight:bold;">${p.size}路</div>
-         </div>
-         <div style="text-align:center; border-left:1px solid #ccc; padding-left:15px;">
-            <div style="font-size:0.8rem; color:#666;">コミ(白へ)</div>
-            <div style="font-size:1.1rem; font-weight:bold;">${p.komi}</div>
-         </div>
-         <div style="text-align:center; border-left:1px solid #ccc; padding-left:15px;">
-            <div style="font-size:0.8rem; color:#666;">黒アゲハマ</div>
-            <div style="font-size:1.1rem; font-weight:bold; color:#d00;">+${prisB}</div>
-         </div>
-         <div style="text-align:center; border-left:1px solid #ccc; padding-left:15px;">
-            <div style="font-size:0.8rem; color:#666;">白アゲハマ</div>
-            <div style="font-size:1.1rem; font-weight:bold; color:#d00;">+${prisW}</div>
-         </div>
-      </div>
+    // ★上部の情報パネル（ヒント）
+    elGameInfo.innerHTML = `
+        <div class="info-box">
+            <div class="info-label">盤面</div>
+            <div class="info-value">${p.size}路</div>
+        </div>
+        <div class="info-box">
+            <div class="info-label">コミ</div>
+            <div class="info-value">${p.komi}</div>
+        </div>
+        <div class="info-box">
+            <div class="info-label">黒アゲハマ</div>
+            <div class="info-value red-text">+${prisB}</div>
+        </div>
+        <div class="info-box">
+            <div class="info-label">白アゲハマ</div>
+            <div class="info-value red-text">+${prisW}</div>
+        </div>
     `;
 
-    // 下段：答えを表示するか、ボタンを表示するか
-    if (!isAnswerVisible) {
-        // ▼▼▼ 隠している状態（ボタン表示） ▼▼▼
-        html += `
-          <button id="btnShowAnswer" 
-            style="
-              width: 100%; 
-              font-size: 1.3rem; 
-              padding: 15px; 
-              background-color: #2196F3; 
-              color: white; 
-              border: none; 
-              border-radius: 8px; 
-              cursor: pointer; 
-              font-weight: bold;
-              box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            "
-            onclick="showAnswer()"
-          >
-            答え合わせをする
-          </button>
-        `;
-    } else {
-        // ▼▼▼ 答えを表示している状態 ▼▼▼
-        // 勝った方を判定して色を変えるなどの演出はお好みで
-        html += `
-          <div style="
-            font-size: 1.8rem; 
-            font-weight: bold; 
-            color: #d32f2f; 
-            background: #ffebee; 
-            padding: 15px; 
-            border: 2px solid #ef5350; 
-            border-radius: 8px;
-            animation: fadeIn 0.5s;
-          ">
-             結果: ${resultStr}
-          </div>
-          <div style="margin-top:5px; font-size:0.9rem; color:#888;">
-            (盤面地 + アゲハマ - コミ)
-          </div>
-        `;
-    }
-
-    elFooter.innerHTML = html;
     drawBoard(p);
   }
-// ---------------------------------------------
-  // ボタンが押されたら呼ばれる関数
-  // ---------------------------------------------
-  window.showAnswer = function() { // HTMLから呼べるようにwindowに付ける
-      isAnswerVisible = true;
-      updateUI(); // 表示を更新
-  };
-  
-  // --- 描画ロジック (サイズ可変対応) ---
+
+  // ★「内訳を見る」ボタンを押した時の処理
+  function showAnswerDetail() {
+      const p = currentProblem;
+      if(!p) return;
+      
+      const prisB = (p.prisoners && p.prisoners.black) ? p.prisoners.black : 0;
+      const prisW = (p.prisoners && p.prisoners.white) ? p.prisoners.white : 0;
+      const komi = p.komi;
+      const result = p.result;
+
+      elFinalResult.innerHTML = `
+        <div style="background:#fff0f0; border:2px solid #ef5350; padding:15px; border-radius:8px; margin-top:10px;">
+            <div style="font-size:1.5rem; color:#d32f2f; margin-bottom:5px;">結果: ${result}</div>
+            <div style="font-size:0.9rem; color:#555; text-align:left; display:inline-block;">
+                <b>内訳の目安:</b><br>
+                黒 = (盤面の地) + (アゲハマ ${prisB})<br>
+                白 = (盤面の地) + (アゲハマ ${prisW}) + (コミ ${komi})<br>
+                <span style="font-size:0.8rem; color:#777;">※1目ズレる場合は「ダメ（隙間）」を数えていないか確認！</span>
+            </div>
+        </div>
+      `;
+  }
+
   function drawBoard(problem) {
-    // 盤面背景
     ctx.fillStyle = "#d3a052";
     ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
-    const size = currentSize; // 9 or 19
-    const margin = 30; // 端の余白
+    const size = currentSize;
+    const margin = 30;
     const boardW = CANVAS_SIZE - margin * 2;
     const cellSize = boardW / (size - 1);
 
-    // 罫線を引く
     ctx.beginPath();
     ctx.strokeStyle = "#000";
     ctx.lineWidth = 1;
 
     for (let i = 0; i < size; i++) {
       const pos = margin + i * cellSize;
-      // 横線
       ctx.moveTo(margin, pos);
       ctx.lineTo(CANVAS_SIZE - margin, pos);
-      // 縦線
       ctx.moveTo(pos, margin);
       ctx.lineTo(pos, CANVAS_SIZE - margin);
     }
     ctx.stroke();
 
-    // 星（Hoshi）を描く
-    const starIndices = MODES[size].starPoints; // [3, 9, 15] or [2, 6, 4]
+    const starIndices = MODES[size].starPoints;
     ctx.fillStyle = "#000";
     starIndices.forEach(row => {
       starIndices.forEach(col => {
-        // 9路盤の中心(4,4)描画のため、配列に含まれる座標の組み合わせすべてに描画
-        // ただし9路の[2,4,6]の全組み合わせだと多すぎるので、
-        // 簡易的に「端から数えて星の位置」だけ描くロジックにする
-        
-        // シンプルに: 指定されたインデックスの交点に描く
-        // 19路: 3,9,15 の組み合わせ (9箇所)
-        // 9路:  2,6 の組み合わせ (4隅) + 天元(4,4)
-        
         let drawStar = false;
-        if(size === 19) {
-          drawStar = true; // 3,9,15のクロスすべて描く
-        } else if (size === 9) {
-            // 天元
-            if (row === 4 && col === 4) drawStar = true;
-            // 四隅 (2,2), (2,6), (6,2), (6,6)
-            if ((row === 2 || row === 6) && (col === 2 || col === 6)) drawStar = true;
+        if(size === 19) drawStar = true;
+        else if (size === 9) {
+           if (row === 4 && col === 4) drawStar = true;
+           if ((row === 2 || row === 6) && (col === 2 || col === 6)) drawStar = true;
         }
-
         if (drawStar) {
-          const x = margin + col * cellSize;
-          const y = margin + row * cellSize;
           ctx.beginPath();
-          ctx.arc(x, y, 3, 0, Math.PI * 2);
+          ctx.arc(margin + col * cellSize, margin + row * cellSize, 3, 0, Math.PI * 2);
           ctx.fill();
         }
       });
     });
 
-    // 石を描く
     const radius = cellSize * 0.45;
-    
     function drawStone(x, y, color) {
         const cx = margin + x * cellSize;
         const cy = margin + y * cellSize;
-        
         ctx.beginPath();
-        // 影
         ctx.arc(cx+1, cy+1, radius, 0, 2*Math.PI);
         ctx.fillStyle = "rgba(0,0,0,0.2)";
         ctx.fill();
-
-        // 本体
         ctx.beginPath();
         ctx.arc(cx, cy, radius, 0, 2*Math.PI);
         ctx.fillStyle = color === 'black' ? "#111" : "#fff";
         ctx.fill();
-        
-        // 白石の光沢
         if (color === 'white') {
             ctx.strokeStyle = "#ccc";
             ctx.lineWidth = 1;
@@ -322,87 +247,60 @@
     problem.stones.white.forEach(pos => drawStone(pos[0], pos[1], 'white'));
   }
 
-  // --- 答え合わせロジック (変更なし) ---
   function checkAnswer() {
     if (!currentProblem) return;
 
-    // 正解データのパース
-    const resStr = currentProblem.result; // "B+6.5", "W+12.0", "B+R" etc
+    // "B+6.5" -> 6.5
+    const resStr = currentProblem.result; 
     let actualDiff = 0;
+    if (resStr.startsWith("B+")) actualDiff = parseFloat(resStr.substring(2));
+    else if (resStr.startsWith("W+")) actualDiff = -parseFloat(resStr.substring(2));
 
-    if (resStr.startsWith("B+")) {
-        actualDiff = parseFloat(resStr.substring(2));
-    } else if (resStr.startsWith("W+")) {
-        actualDiff = -parseFloat(resStr.substring(2));
-    } else {
-        // "Draw", "Void", "?" など
-        actualDiff = 0; 
-    }
-
-    // ユーザー入力の取得
     let userDiff = 0;
     const mode = selMode.value;
 
     if (mode === 'winner') {
         const winner = inpWinner.value;
         const margin = parseFloat(inpMargin.value);
-        if (isNaN(margin)) {
-            alert("目数を入力してください");
-            return;
-        }
+        if (isNaN(margin)) { alert("目数を入力してください"); return; }
         userDiff = (winner === 'black') ? margin : -margin;
     } else {
         const d = parseFloat(inpDiff.value);
-        if (isNaN(d)) {
-            alert("目数差を入力してください");
-            return;
-        }
+        if (isNaN(d)) { alert("目数差を入力してください"); return; }
         userDiff = d;
     }
 
-    // 判定 (誤差0.5まで許容するか、完全一致か。今回は完全一致で判定)
-    // 浮動小数点の誤差を考慮して差の絶対値が小さいかで判定
+    // 判定
     const isCorrect = Math.abs(userDiff - actualDiff) < 0.1;
+
+    // ★回答ボタンを押したら、結果ボタンエリアを表示する
+    elResultArea.style.display = "block"; 
+    // まだ内訳は表示しない（ボタンを押させる）
 
     if (isCorrect) {
         elStatus.textContent = "正解！！ お見事！";
         elStatus.className = "status-msg green";
         score += 10;
-        // 3秒後に次へ
-        setTimeout(() => {
-            currentIndex++;
-            nextProblem();
-        }, 2000);
+        // 正解時は自動で次に進む（3秒後）
+        setTimeout(() => { nextProblem(); }, 3000);
     } else {
-        elStatus.innerHTML = `残念...<br>正解は <b>${actualDiff > 0 ? "黒" : "白"} ${Math.abs(actualDiff)}目勝ち</b> (差: ${actualDiff})`;
+        // 不正解時は、結果（勝敗のみ）を出すが、内訳はボタンで見させる
+        const actualWinner = actualDiff > 0 ? "黒" : "白";
+        elStatus.innerHTML = `残念... 正解は <b>${actualWinner} ${Math.abs(actualDiff)}目勝ち</b> です。`;
         elStatus.className = "status-msg red";
         lives--;
         updateStatus();
         
-        if (lives > 0) {
-            // 間違えても次へ行くならここ
-            setTimeout(() => {
-                currentIndex++;
-                nextProblem();
-            }, 3000);
-        } else {
-             btnSubmit.disabled = true;
+        // ライフ0なら終了
+        if (lives <= 0) {
+            btnSubmit.disabled = true;
+            elStatus.innerHTML += "<br>ゲームオーバー！リスタートボタンを押してください。";
         }
     }
-  }
-
-  function finishGame(cleared) {
-    if (cleared) {
-        elStatus.textContent = "全問クリア！おめでとうございます！";
-        elStatus.className = "status-msg green";
-    } else {
-        elStatus.textContent = "ゲームオーバー...";
-        elStatus.className = "status-msg red";
-    }
+    // 回答ボタンを一度無効化（連打防止）
     btnSubmit.disabled = true;
   }
 
-  // 起動
   init();
 
 })();
