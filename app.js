@@ -220,10 +220,7 @@
     problem.stones.white.forEach(([x, y]) => board[y][x] = -1);
   
     const visited = Array.from({ length: size }, () => Array(size).fill(false));
-  
-    const dirs = [
-      [1,0], [-1,0], [0,1], [0,-1]
-    ];
+    const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
   
     let blackTerritory = 0;
     let whiteTerritory = 0;
@@ -258,24 +255,35 @@
         }
       }
   
-      // 判定
       if (neighbors.size === 1) {
         if (neighbors.has("black")) blackTerritory += region.length;
         if (neighbors.has("white")) whiteTerritory += region.length;
       }
     }
   
-    // 全空点を走査
     for (let y = 0; y < size; y++) {
       for (let x = 0; x < size; x++) {
-        if (board[y][x] === 0 && !visited[y][x]) {
-          bfs(x, y);
-        }
+        if (board[y][x] === 0 && !visited[y][x]) bfs(x, y);
       }
     }
   
     return { blackTerritory, whiteTerritory };
-  }  
+  }
+
+  function scoreJapanese(problem) {
+    const { blackTerritory, whiteTerritory } = computeTerritory(problem);
+  
+    const prisB = problem.prisoners?.black || 0;
+    const prisW = problem.prisoners?.white || 0;
+  
+    // 日本ルールはコミ 6.5 に固定
+    const komi = 6.5;
+  
+    const black = blackTerritory + prisB;
+    const white = whiteTerritory + prisW + komi;
+  
+    return black - white; // 黒が正なら黒勝ち
+  }
   
   /* -----------------------------
      回答チェック
@@ -291,6 +299,7 @@
     updateStatus();
     nextProblem();
   }
+  
   function checkAnswer() {
     if (!currentProblem) return;
 
@@ -312,9 +321,13 @@
       if (isNaN(d)) { alert("目数差を入力してください"); return; }
       userDiff = d;
     }
-
-    const isCorrect = Math.abs(userDiff - actualDiff) < 0.1;
-
+    
+    // 日本ルールの差分を計算
+    const diffJapanese = scoreJapanese(currentProblem);
+    
+    // 日本ルールで一致すれば正解
+    const isCorrect = Math.abs(userDiff - diffJapanese) < 0.1;
+    
     const p = currentProblem;
     const prisB = p.prisoners?.black || 0;
     const prisW = p.prisoners?.white || 0;
