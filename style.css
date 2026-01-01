@@ -131,8 +131,8 @@ button:disabled {
 #resultArea {
   margin-top: 16px;
   display: none;
+  width: 100%;
 }
-
 .result-box {
   padding: 14px;
   border-radius: 8px;
