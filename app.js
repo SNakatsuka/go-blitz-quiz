@@ -60,6 +60,8 @@
      初期化
   ----------------------------- */
   function init() {
+    console.log("init called");
+
     btnNext.style.display = 'none';
 
     btnSubmit.addEventListener('click', checkAnswer);
