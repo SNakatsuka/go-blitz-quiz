@@ -133,6 +133,10 @@
         <div class="info-label">白アゲハマ</div>
         <div class="info-value red-text">+${prisW}</div>
       </div>
+      <div class="rule-note">
+        ※ 日本ルール（地＋アゲハマ＋コミ6.5）でも、
+           中国ルール（石数＋地＋コミ7.0）でも回答できます。
+      </div>
     `;
 
     drawBoard(p);
