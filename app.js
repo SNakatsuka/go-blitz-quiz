@@ -26,7 +26,6 @@
   // 新設・変更したDOM
   const elGameInfo = document.getElementById('gameInfo');
   const elResultArea = document.getElementById('resultArea');
-  // showAnswerDetail を廃止したので btnShowAnswer / elFinalResult は不要
 
   const btnSubmit = document.getElementById('submitBtn');
   const btnRestart = document.getElementById('restartBtn');
@@ -112,8 +111,6 @@
   function updateStatus() {
     elScore.textContent = score;
     elLives.textContent = lives;
-    // 表示は 1 から始まる問題番号。currentIndex は nextProblem 内でインクリメントされるため、
-    // 現在表示中の問題番号は Math.min(currentIndex, quizData.length)
     elProblemIdx.textContent = quizData.length ? Math.min(currentIndex, quizData.length) : 0;
   }
 
@@ -225,7 +222,7 @@
     if (mode === 'winner') {
       const winner = inpWinner.value;
       const margin = parseFloat(inpMargin.value);
-      if (isNaN(margin)) { alert("目数を入力してください"); return; }
+      if (isNaN(margin) || margin < 0) { alert("目数を正しく入力してください"); return; }
       userDiff = (winner === 'black') ? margin : -margin;
     } else {
       const d = parseFloat(inpDiff.value);
@@ -247,8 +244,8 @@
     // 結果＋内訳をまとめて表示
     elResultArea.style.display = "block";
     elResultArea.innerHTML = `
-      <div style="background:#fff; border:2px solid #444; padding:15px; border-radius:8px;">
-        <div style="font-size:1.4rem; margin-bottom:10px;">
+      <div class="result-box" style="background:${isCorrect ? '#e8f5e9' : '#fff0f0'}; border:2px solid ${isCorrect ? '#2e7d32' : '#ef5350'}; padding:15px; border-radius:8px;">
+        <div style="font-size:1.2rem; margin-bottom:8px;">
           ${isCorrect ?
             `<span style="color:#2e7d32;">正解！ お見事！</span>` :
             `<span style="color:#c62828;">残念… 正解は <b>${actualWinner} ${marginAbs}目勝ち</b></span>`
