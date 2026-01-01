@@ -211,6 +211,72 @@
     problem.stones.white.forEach(pos => drawStone(pos[0], pos[1], 'white'));
   }
 
+  function computeTerritory(problem) {
+    const size = problem.size;
+    const board = Array.from({ length: size }, () => Array(size).fill(0));
+  
+    // 1 = 黒石, -1 = 白石, 0 = 空点
+    problem.stones.black.forEach(([x, y]) => board[y][x] = 1);
+    problem.stones.white.forEach(([x, y]) => board[y][x] = -1);
+  
+    const visited = Array.from({ length: size }, () => Array(size).fill(false));
+  
+    const dirs = [
+      [1,0], [-1,0], [0,1], [0,-1]
+    ];
+  
+    let blackTerritory = 0;
+    let whiteTerritory = 0;
+  
+    function bfs(sx, sy) {
+      const queue = [[sx, sy]];
+      visited[sy][sx] = true;
+  
+      const region = [[sx, sy]];
+      const neighbors = new Set();
+  
+      while (queue.length) {
+        const [x, y] = queue.shift();
+  
+        for (const [dx, dy] of dirs) {
+          const nx = x + dx;
+          const ny = y + dy;
+  
+          if (nx < 0 || ny < 0 || nx >= size || ny >= size) continue;
+  
+          const v = board[ny][nx];
+  
+          if (v === 0 && !visited[ny][nx]) {
+            visited[ny][nx] = true;
+            queue.push([nx, ny]);
+            region.push([nx, ny]);
+          } else if (v === 1) {
+            neighbors.add("black");
+          } else if (v === -1) {
+            neighbors.add("white");
+          }
+        }
+      }
+  
+      // 判定
+      if (neighbors.size === 1) {
+        if (neighbors.has("black")) blackTerritory += region.length;
+        if (neighbors.has("white")) whiteTerritory += region.length;
+      }
+    }
+  
+    // 全空点を走査
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        if (board[y][x] === 0 && !visited[y][x]) {
+          bfs(x, y);
+        }
+      }
+    }
+  
+    return { blackTerritory, whiteTerritory };
+  }  
+  
   /* -----------------------------
      回答チェック
   ----------------------------- */
@@ -257,6 +323,8 @@
     const actualWinner = actualDiff > 0 ? "黒" : "白";
     const marginAbs = Math.abs(actualDiff);
 
+    const { blackTerritory, whiteTerritory } = computeTerritory(currentProblem);
+
     elResultArea.style.display = "block";
     elResultArea.innerHTML = `
       <div class="result-box ${isCorrect ? 'correct' : 'wrong'}">
@@ -266,11 +334,11 @@
             `残念… 正解は <b>${actualWinner} ${marginAbs}目勝ち</b>`
           }
         </div>
-
+    
         <div style="font-size:0.95rem; text-align:left; line-height:1.6;">
           <b>内訳:</b><br>
-          黒 = 黒地 + 黒アゲハマ(${prisB})<br>
-          白 = 白地 + 白アゲハマ(${prisW}) + コミ(${komi})<br><br>
+          黒 = 黒地(${blackTerritory}) + 黒アゲハマ(${prisB})<br>
+          白 = 白地(${whiteTerritory}) + 白アゲハマ(${prisW}) + コミ(${komi})<br><br>
           (黒合計) − (白合計) = ${actualDiff} 目
         </div>
       </div>
