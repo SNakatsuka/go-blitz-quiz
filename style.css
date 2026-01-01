@@ -75,7 +75,7 @@ canvas {
   margin-top: 12px;
   display: flex;
   gap: 12px;
-  align-items: center;
+  align-items: flex-start;  /* ここを変更 */
   justify-content: center;
   flex-wrap: wrap;
   background: #fafafa;
