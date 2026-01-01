@@ -55,44 +55,7 @@
     }
     return false;
   }
-
-  /* -----------------------------
-     初期化
-  ----------------------------- */
-  function init() {
-    console.log("init called");
-
-    btnNext.style.display = 'none';
-
-    btnSubmit.addEventListener('click', checkAnswer);
-    btnRestart.addEventListener('click', restartGame);
-    btnNext.addEventListener('click', nextProblem);
-
-    selMode.addEventListener('change', () => {
-      if (selMode.value === 'winner') {
-        boxWinner.style.display = 'block';
-        boxDiff.style.display = 'none';
-      } else {
-        boxWinner.style.display = 'none';
-        boxDiff.style.display = 'block';
-      }
-    });
-
-    sizeSelect.addEventListener('change', (e) => {
-      loadGameMode(parseInt(e.target.value, 10));
-    });
-
-    // ウィンドウリサイズ時に盤面を再描画
-    window.addEventListener('resize', () => {
-      if (currentProblem) {
-        resizeCanvasToDisplaySize(canvas);
-        updateUI();
-      }
-    });
-
-    loadGameMode(9);
-  }
-
+  
   /* -----------------------------
      モード読み込み
   ----------------------------- */
@@ -131,7 +94,7 @@
       elStatus.className = "status-msg red";
     }
   }
-
+  
   /* -----------------------------
      ステータス更新
   ----------------------------- */
@@ -362,6 +325,42 @@
     resizeCanvasToDisplaySize(canvas);
     updateUI();
     updateStatus();
+  }
+  /* -----------------------------
+     初期化
+  ----------------------------- */
+  function init() {
+    console.log("init called");
+
+    btnNext.style.display = 'none';
+
+    btnSubmit.addEventListener('click', checkAnswer);
+    btnRestart.addEventListener('click', restartGame);
+    btnNext.addEventListener('click', nextProblem);
+
+    selMode.addEventListener('change', () => {
+      if (selMode.value === 'winner') {
+        boxWinner.style.display = 'block';
+        boxDiff.style.display = 'none';
+      } else {
+        boxWinner.style.display = 'none';
+        boxDiff.style.display = 'block';
+      }
+    });
+
+    sizeSelect.addEventListener('change', (e) => {
+      loadGameMode(parseInt(e.target.value, 10));
+    });
+
+    // ウィンドウリサイズ時に盤面を再描画
+    window.addEventListener('resize', () => {
+      if (currentProblem) {
+        resizeCanvasToDisplaySize(canvas);
+        updateUI();
+      }
+    });
+
+    loadGameMode(9);
   }
 
   init();
