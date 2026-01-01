@@ -49,11 +49,14 @@ h1 {
 .info-value { font-size: 1.1rem; font-weight: bold; color: #333; }
 .red-text { color: #d00; }
 .rule-note {
+  display: block;   /* flex の子でも強制的にブロック化 */
+  width: 100%;
+  margin-top: 10px;
   font-size: 0.85rem;
   color: #555;
-  margin-top: 8px;
   line-height: 1.4;
 }
+
 /* ================================
    盤面（レスポンシブ）
 ================================ */
