@@ -40,11 +40,6 @@
         .status-msg { margin-top: 15px; font-weight: bold; font-size: 1.1rem; min-height: 1.5em; }
         .status-msg.green { color: #2e7d32; }
         .status-msg.red { color: #c62828; }
-
-        /* 答え合わせボタン */
-        #btnShowAnswer {
-            width: 100%; margin-top: 10px; background-color: #607d8b;
-        }
     </style>
 </head>
 <body>
@@ -67,7 +62,7 @@
             <div>データを読み込み中...</div>
         </div>
 
-        <canvas id="board" width="600" height="600"></canvas>
+        <canvas id="board" width="600" height="600" role="img" aria-label="囲碁盤の図"></canvas>
 
         <div class="controls">
             <div class="mode-select">
@@ -95,13 +90,12 @@
                 目勝ち
             </div>
 
-            <button id="submitBtn" class="btn btn-blue">回答する</button>
-            <button id="btnNext" style="display:none;">次へ</button>
-            <div id="status" class="status-msg"></div>
+            <button id="submitBtn" type="button" class="btn btn-blue">回答する</button>
+            <button id="btnNext" type="button" class="btn btn-blue" style="display:none;">次へ</button>
+            <button id="restartBtn" type="button" class="btn btn-green" style="margin-top:20px;">リスタート</button>
+            <div id="status" class="status-msg" aria-live="polite"></div>
 
-            <div id="resultArea">
-                <button id="btnShowAnswer" class="btn btn-gray">内訳を見る（答え合わせ）</button>
-                <div id="finalResult" style="margin-top:10px;"></div>
+            <div id="resultArea" style="display:none;">
             </div>
             
             <button id="restartBtn" class="btn btn-green" style="margin-top: 20px;">リスタート</button>
