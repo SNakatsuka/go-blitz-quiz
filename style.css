@@ -1,4 +1,6 @@
-/* ベース設定 */
+/* ================================
+   ベース設定
+================================ */
 body {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
   margin: 0;
@@ -9,8 +11,10 @@ body {
   justify-content: center;
 }
 
-/* メインコンテナ（HTML の .container / #game-container に対応） */
-.container, #game-container {
+/* ================================
+   メインコンテナ
+================================ */
+.container {
   background: #fff;
   padding: 20px;
   border-radius: 12px;
@@ -20,15 +24,16 @@ body {
   box-sizing: border-box;
 }
 
-/* 見出し */
-h1, h2 {
-  font-size: 1.3rem;
+h1 {
+  font-size: 1.4rem;
   margin: 0 0 15px 0;
   text-align: center;
 }
 
-/* ステータスバー（HTML の #gameInfo に対応） */
-#gameInfo, .status-bar {
+/* ================================
+   ステータスバー（問題数・スコア）
+================================ */
+#gameInfo {
   display: flex;
   justify-content: space-around;
   align-items: center;
@@ -38,18 +43,22 @@ h1, h2 {
   margin-bottom: 16px;
   border: 1px solid #dde;
 }
+
 .info-box { text-align: center; }
 .info-label { font-size: 0.85rem; color: #666; margin-bottom: 4px; }
 .info-value { font-size: 1.1rem; font-weight: bold; color: #333; }
 .red-text { color: #d00; }
 
-/* 盤面ラッパー（レスポンシブ） */
+/* ================================
+   盤面（レスポンシブ）
+================================ */
 #boardWrap {
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
   margin: 0 auto 12px;
 }
+
 canvas {
   display: block;
   width: 100%;
@@ -59,7 +68,9 @@ canvas {
   box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
 }
 
-/* 操作パネル */
+/* ================================
+   操作パネル
+================================ */
 .controls {
   margin-top: 12px;
   display: flex;
@@ -73,13 +84,17 @@ canvas {
   border: 1px solid #eee;
 }
 
-/* 入力・ボタン類 */
-select, input[type="number"] {
+select,
+input[type="number"] {
   padding: 8px;
   font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 4px;
 }
+
+/* ================================
+   ボタン
+================================ */
 .btn {
   padding: 8px 16px;
   border: none;
@@ -89,35 +104,63 @@ select, input[type="number"] {
   cursor: pointer;
   transition: background 0.15s;
 }
+
 .btn-blue { background: #2196F3; }
 .btn-blue:hover { background: #1976D2; }
+
 .btn-green { background: #4CAF50; }
 .btn-green:hover { background: #388E3C; }
-.btn-gray { background: #607d8b; }
-button:disabled { background: #ccc; cursor: not-allowed; }
 
-/* 結果表示 */
-#resultArea { margin-top: 16px; display: none; }
+.btn-gray { background: #607d8b; }
+
+button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* ================================
+   結果表示
+================================ */
+#resultArea {
+  margin-top: 16px;
+  display: none;
+}
+
 .result-box {
   padding: 14px;
   border-radius: 8px;
   font-weight: bold;
   font-size: 1rem;
 }
-.result-box.correct { background: #e8f5e9; border: 2px solid #2e7d32; color: #2e7d32; }
-.result-box.wrong   { background: #fff0f0; border: 2px solid #ef5350; color: #c62828; }
 
-/* ステータスメッセージ */
+.result-box.correct {
+  background: #e8f5e9;
+  border: 2px solid #2e7d32;
+  color: #2e7d32;
+}
+
+.result-box.wrong {
+  background: #fff0f0;
+  border: 2px solid #ef5350;
+  color: #c62828;
+}
+
+/* ================================
+   ステータスメッセージ
+================================ */
 .status-msg {
   margin: 12px 0;
   text-align: center;
   font-weight: bold;
   min-height: 1.5em;
 }
+
 .status-msg.green { color: #0a7a0a; }
 .status-msg.red { color: #d93025; }
 
-/* フッター情報 */
+/* ================================
+   フッター
+================================ */
 .meta-footer {
   margin-top: 18px;
   padding-top: 12px;
