@@ -3,47 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>囲碁 整地計算トレーニング</title>
-    <style>
-        body { font-family: "Helvetica Neue", Arial, sans-serif; background-color: #f4f4f4; text-align: center; padding: 20px; }
-        .container { max-width: 700px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        h1 { margin-bottom: 10px; color: #333; }
-
-        /* スコアボード（新設） */
-        #gameInfo {
-            display: flex; justify-content: space-around; align-items: center;
-            background: #eef; padding: 15px; border-radius: 8px; margin-bottom: 20px;
-            border: 1px solid #dde;
-        }
-        .info-box { text-align: center; }
-        .info-label { font-size: 0.85rem; color: #666; margin-bottom: 4px; }
-        .info-value { font-size: 1.25rem; font-weight: bold; color: #333; }
-        .red-text { color: #d00; }
-
-        /* 盤面 */
-        canvas { background-color: #d3a052; display: block; margin: 0 auto; border-radius: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); cursor: crosshair; }
-
-        /* 操作パネル */
-        .controls { margin-top: 20px; padding: 15px; background: #fafafa; border-radius: 8px; border: 1px solid #eee; }
-        .mode-select { margin-bottom: 15px; }
-        .input-group { margin: 15px 0; }
-        input[type="number"], select { padding: 10px; font-size: 1rem; border-radius: 4px; border: 1px solid #ccc; width: 80px; text-align: center; }
-
-        /* ボタン */
-        .btn { padding: 10px 25px; font-size: 1rem; cursor: pointer; border: none; border-radius: 5px; color: white; transition: background 0.2s; }
-        .btn-blue { background-color: #2196F3; } .btn-blue:hover { background-color: #1976D2; }
-        .btn-green { background-color: #4CAF50; } .btn-green:hover { background-color: #388E3C; }
-        .btn-gray { background-color: #757575; }
-
-        /* 結果表示エリア */
-        #resultArea { margin-top: 20px; display: none; }
-        .result-box { padding: 15px; border-radius: 8px; font-weight: bold; font-size: 1.2rem; }
-        .status-msg { margin-top: 15px; font-weight: bold; font-size: 1.1rem; min-height: 1.5em; }
-        .status-msg.green { color: #2e7d32; }
-        .status-msg.red { color: #c62828; }
-
-        /* 答え合わせボタン */
-        #btnShowAnswer { width: 100%; margin-top: 10px; background-color: #607d8b; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
