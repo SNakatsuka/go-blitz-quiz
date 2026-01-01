@@ -39,6 +39,23 @@
   const inpMargin = document.getElementById('ansMargin');
   const inpDiff = document.getElementById('ansDiff');
 
+  // ファイル上部か init の外に置く
+  function resizeCanvasToDisplaySize(canvas) {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    const w = Math.round(rect.width * dpr);
+    const h = Math.round(rect.height * dpr);
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+      // 描画コンテキストのスケールをリセットしておく
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(dpr, dpr);
+      return true;
+    }
+    return false;
+  }
+    
   function init() {
     // 初期表示
     btnNext.style.display = 'none';
@@ -115,6 +132,8 @@
   }
 
   function updateUI() {
+    // updateUI の冒頭で呼ぶ
+    resizeCanvasToDisplaySize(canvas);
     const p = currentProblem;
     if (!p) return;
 
@@ -144,27 +163,36 @@
   }
 
   function drawBoard(problem) {
-    ctx.fillStyle = "#d3a052";
-    ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-
+    // CSS の表示サイズに合わせた論理ピクセル幅を取得
+    const displayWidth = canvas.clientWidth;
+    const displayHeight = canvas.clientHeight;
+  
+    // マージンは表示サイズに対する比率で決める（例: 5%）
+    const margin = Math.round(displayWidth * 0.05);
+    const boardW = displayWidth - margin * 2;
     const size = currentSize;
-    const margin = 30;
-    const boardW = CANVAS_SIZE - margin * 2;
     const cellSize = boardW / (size - 1);
-
+  
+    // 背景を塗る（ctx は既に devicePixelRatio に合わせてスケール済み）
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#d3a052";
+    // fillRect は CSS ピクセルで描くため clientWidth/clientHeight を使う
+    ctx.fillRect(0, 0, displayWidth, displayHeight);
+  
     ctx.beginPath();
     ctx.strokeStyle = "#000";
-    ctx.lineWidth = 1;
-
+    ctx.lineWidth = Math.max(1, 1); // 見た目調整
+  
     for (let i = 0; i < size; i++) {
       const pos = margin + i * cellSize;
       ctx.moveTo(margin, pos);
-      ctx.lineTo(CANVAS_SIZE - margin, pos);
+      ctx.lineTo(margin + boardW, pos);
       ctx.moveTo(pos, margin);
-      ctx.lineTo(pos, CANVAS_SIZE - margin);
+      ctx.lineTo(pos, margin + boardW);
     }
     ctx.stroke();
-
+  
+    // 星印（星のインデックス配列をそのまま使う）
     const starIndices = MODES[size].starPoints;
     ctx.fillStyle = "#000";
     starIndices.forEach(row => {
@@ -182,17 +210,19 @@
         }
       });
     });
-
+  
     const radius = cellSize * 0.45;
     function drawStone(x, y, color) {
       const cx = margin + x * cellSize;
       const cy = margin + y * cellSize;
+      // 影
       ctx.beginPath();
-      ctx.arc(cx+1, cy+1, radius, 0, 2*Math.PI);
+      ctx.arc(cx + 1, cy + 1, radius, 0, 2 * Math.PI);
       ctx.fillStyle = "rgba(0,0,0,0.2)";
       ctx.fill();
+      // 石本体
       ctx.beginPath();
-      ctx.arc(cx, cy, radius, 0, 2*Math.PI);
+      ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
       ctx.fillStyle = color === 'black' ? "#111" : "#fff";
       ctx.fill();
       if (color === 'white') {
@@ -201,7 +231,7 @@
         ctx.stroke();
       }
     }
-
+  
     problem.stones.black.forEach(pos => drawStone(pos[0], pos[1], 'black'));
     problem.stones.white.forEach(pos => drawStone(pos[0], pos[1], 'white'));
   }
@@ -312,7 +342,7 @@
 
     // 回答ボタン復活
     btnSubmit.disabled = false;
-
+    
     updateUI();
     updateStatus();
   }
