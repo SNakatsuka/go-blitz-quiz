@@ -134,8 +134,8 @@
         <div class="info-value red-text">+${prisW}</div>
       </div>
       <div class="rule-note">
-        ※ 日本ルール（地＋アゲハマ＋コミ6.5）でも、
-           中国ルール（石数＋地＋コミ7.0）でも回答できます。
+        ※ アゲハマは日本ルール（地＋アゲハマ＋コミ6.5）での計算時のみ使用されます。
+           中国ルール（石数＋地＋コミ7.0）ではアゲハマは存在しません。
       </div>
     `;
 
@@ -276,10 +276,15 @@
 
   function scoreJapanese(problem) {
     const { blackTerritory, whiteTerritory } = computeTerritory(problem);
-  
-    const prisB = problem.prisoners?.black || 0;
-    const prisW = problem.prisoners?.white || 0;
-  
+    const blackMoves = problem.moves.black; // ← これを JSON に入れればOK
+    const whiteMoves = problem.moves.white;
+    
+    const blackStones = problem.stones.black.length;
+    const whiteStones = problem.stones.white.length;
+    
+    const prisB = whiteMoves - whiteStones;
+    const prisW = blackMoves - blackStones;
+    
     // 日本ルールはコミ 6.5 に固定
     const komi = 6.5;
   
@@ -303,82 +308,55 @@
     updateStatus();
     nextProblem();
   }
-  
+    
   function checkAnswer() {
-    if (!currentProblem) return;
-
-    const resStr = currentProblem.result;
-    let actualDiff = 0;
-    if (resStr.startsWith("B+")) actualDiff = parseFloat(resStr.substring(2));
-    else if (resStr.startsWith("W+")) actualDiff = -parseFloat(resStr.substring(2));
-
-    let userDiff = 0;
-    const mode = selMode.value;
-
-    if (mode === 'winner') {
-      const winner = inpWinner.value;
-      const margin = parseFloat(inpMargin.value);
-      if (isNaN(margin) || margin < 0) { alert("目数を正しく入力してください"); return; }
-      userDiff = (winner === 'black') ? margin : -margin;
-    } else {
-      const d = parseFloat(inpDiff.value);
-      if (isNaN(d)) { alert("目数差を入力してください"); return; }
-      userDiff = d;
-    }
-    
-    // 日本ルールの差分を計算
+    const userDiff = parseFloat(elInput.value);
+    if (isNaN(userDiff)) return;
+  
     const diffJapanese = scoreJapanese(currentProblem);
-    
-    // 日本ルールで一致すれば正解
+  
     const isCorrect = Math.abs(userDiff - diffJapanese) < 0.1;
-    
-    const p = currentProblem;
-    const prisB = p.prisoners?.black || 0;
-    const prisW = p.prisoners?.white || 0;
-    const komi = p.komi;
-
-    const actualWinner = actualDiff > 0 ? "黒" : "白";
-    const marginAbs = Math.abs(actualDiff);
-
+  
+    showResult(isCorrect, diffJapanese);
+  }
+  
+  function showResult(isCorrect, diffJapanese) {
     const { blackTerritory, whiteTerritory } = computeTerritory(currentProblem);
-
-    elResultArea.style.display = "block";
+  
+    const blackMoves = currentProblem.moves.black;
+    const whiteMoves = currentProblem.moves.white;
+  
+    const blackStones = currentProblem.stones.black.length;
+    const whiteStones = currentProblem.stones.white.length;
+  
+    const prisB = whiteMoves - whiteStones;
+    const prisW = blackMoves - blackStones;
+  
+    const komi = 6.5;
+  
     elResultArea.innerHTML = `
       <div class="result-box ${isCorrect ? 'correct' : 'wrong'}">
-        <div style="font-size:1.2rem; margin-bottom:8px;">
-          ${isCorrect ?
-            `正解！ お見事！` :
-            `残念… 正解は <b>${actualWinner} ${marginAbs}目勝ち</b>`
-          }
+        <div class="result-title">
+          ${isCorrect ? "正解！" : "残念…"}
         </div>
-    
-        <div style="font-size:0.95rem; text-align:left; line-height:1.6;">
-          <b>内訳:</b><br>
-          黒 = 黒地(${blackTerritory}) + 黒アゲハマ(${prisB})<br>
-          白 = 白地(${whiteTerritory}) + 白アゲハマ(${prisW}) + コミ(${komi})<br><br>
-          (黒合計) − (白合計) = ${actualDiff} 目
+  
+        <div class="result-detail">
+          <b>日本ルールでの内訳:</b><br>
+          黒地: ${blackTerritory}<br>
+          白地: ${whiteTerritory}<br>
+          黒アゲハマ: ${prisB}<br>
+          白アゲハマ: ${prisW}<br>
+          コミ: ${komi}<br>
+          <br>
+          <b>差分（黒 − 白） = ${diffJapanese.toFixed(1)} 目</b>
+        </div>
+  
+        <div class="rule-note">
+          ※ アゲハマは日本ルールの計算時のみ使用されます。
         </div>
       </div>
     `;
-
-    if (!isCorrect) {
-      lives--;
-      updateStatus();
-      if (lives <= 0) {
-        elStatus.innerHTML = "ゲームオーバー！リスタートしてください。";
-        btnSubmit.disabled = true;
-        btnNext.style.display = 'none';
-        return;
-      }
-    } else {
-      score += 10;
-      updateStatus();
-    }
-
-    btnSubmit.disabled = true;
-    btnNext.style.display = "inline-block";
-  }
-
+  }  
   /* -----------------------------
      次の問題へ
   ----------------------------- */
