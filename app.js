@@ -185,7 +185,7 @@
     const size = currentSize;
     const cellSize = boardW / (size - 1);
 
-    ctx.clearRect(0, 0, displayW, displayH);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#d3a052";
     ctx.fillRect(0, 0, displayW, displayH);
 
