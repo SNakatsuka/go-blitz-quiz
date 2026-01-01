@@ -118,6 +118,14 @@ button:disabled {
   cursor: not-allowed;
 }
 
+.button-row {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
 /* 説明文 */
 .note {
   font-size: 0.8rem;
