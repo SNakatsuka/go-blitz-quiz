@@ -251,6 +251,17 @@
   /* -----------------------------
      回答チェック
   ----------------------------- */
+  function restartGame() {
+    score = 0;
+    lives = 3;
+    currentIndex = 0;
+    quizData.sort(() => Math.random() - 0.5);
+    btnSubmit.disabled = false;
+    btnNext.style.display = 'none';
+    elStatus.textContent = "";
+    updateStatus();
+    nextProblem();
+  }
   function checkAnswer() {
     if (!currentProblem) return;
 
