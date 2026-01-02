@@ -113,32 +113,42 @@
     const p = currentProblem;
     if (!p) return;
 
-    const prisB = p.prisoners?.black || 0;
-    const prisW = p.prisoners?.white || 0;
+    const blackMoves = problem.moves.black;
+    const whiteMoves = problem.moves.white;
+    
+    const blackStones = problem.stones.black.length;
+    const whiteStones = problem.stones.white.length;
+    
+    const prisB = whiteMoves - whiteStones; // 黒アゲハマ
+    const prisW = blackMoves - blackStones; // 白アゲハマ
 
     elGameInfo.innerHTML = `
       <div class="info-box">
         <div class="info-label">盤面</div>
         <div class="info-value">${p.size}路</div>
       </div>
+    
       <div class="info-box">
-        <div class="info-label">コミ</div>
-        <div class="info-value">${p.komi}</div>
+        <div class="info-label">コミ（日本ルール）</div>
+        <div class="info-value">6.5</div>
       </div>
+    
       <div class="info-box">
         <div class="info-label">黒アゲハマ</div>
         <div class="info-value red-text">+${prisB}</div>
       </div>
+    
       <div class="info-box">
         <div class="info-label">白アゲハマ</div>
         <div class="info-value red-text">+${prisW}</div>
       </div>
+    
       <div class="rule-note">
-        ※ アゲハマは日本ルール（地＋アゲハマ＋コミ6.5）での計算時のみ使用されます。
-           中国ルール（石数＋地＋コミ7.0）ではアゲハマは存在しません。
+        ※ この表示は日本ルール（地＋アゲハマ＋コミ6.5）に基づいています。
+           問題自体は中国ルールで生成されています。
       </div>
     `;
-
+    
     drawBoard(p);
   }
 
