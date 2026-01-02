@@ -321,6 +321,8 @@
   }
   
   function showResult(isCorrect, diffJapanese) {
+    elResultArea.style.display = "block";  // ← これが必須！  
+    
     const { blackTerritory, whiteTerritory } = computeTerritory(currentProblem);
   
     const blackMoves = currentProblem.moves.black;
@@ -356,6 +358,8 @@
         </div>
       </div>
     `;
+    
+    elResultArea.scrollIntoView({ behavior: "smooth", block: "center" });
   }  
   /* -----------------------------
      次の問題へ
