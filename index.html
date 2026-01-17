@@ -1,82 +1,54 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>囲碁 フラッシュ地合クイズ</title>
-  <meta name="description" content="フラッシュ地合クイズ｜実戦風局面で地合を素早く判断。レベル(9/13/19)・回答形式(最終差/勝者＋目数)対応。" />
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>囲碁 地合目利きクイズ (19路盤)</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>囲碁 フラッシュ地合クイズ</h1>
 
-  <div class="topbar panel mono">
-    <div>レベル（盤サイズ）:
-      <select id="levelSelect" title="盤サイズを選択">
-        <option value="9" selected>9路盤</option>
-        <option value="13">13路盤</option>
-        <option value="19">19路盤</option>
-      </select>
-    </div>
-    <div>回答形式:
-      <select id="answerMode" title="回答形式を選択">
-        <option value="diff" selected>最終差（黒−白）</option>
-        <option value="winner">勝者＋目数</option>
-      </select>
-    </div>
-    <div>問題: <span id="problemIdx">1</span>/<span id="problemTotal">?</span></div>
-    <div>残り挑戦回数: <span id="lives">3</span></div>
-    <div>正解数: <span id="score">0</span></div>
+<div id="game-container">
+  <h2>囲碁 地合目利きクイズ (19路盤)</h2>
+  
+  <div class="status-bar">
+    <span>問題 <span id="problemIdx">--</span> / <span id="problemTotal">--</span></span>
+    <span>残りライフ: <span id="lives">3</span></span>
+    <span>スコア: <span id="score">0</span></span>
   </div>
 
   <div id="boardWrap">
-    <canvas id="board" width="640" height="640"></canvas>
-    <canvas id="overlay" width="640" height="640"></canvas>
+    <canvas id="board" width="600" height="600"></canvas>
   </div>
 
-  <div class="panel mono inputs" style="margin-top:10px;">
-    <div>盤サイズ: <span id="boardSizeText"></span></div>
-    <div>コミ(白): <span id="komiText"></span></div>
-    <div>黒取り: <span id="capBText"></span></div>
-    <div>白取り: <span id="capWText"></span></div>
-    <div>備考: <span id="noteText"></span></div>
+  <div id="status" class="status-msg">ロード中...</div>
+
+  <div class="controls">
+    <select id="answerMode">
+      <option value="winner">勝敗 + 目数</option>
+      <option value="diff">目数差のみ(符号付)</option>
+    </select>
+
+    <span id="answerWinnerBox">
+      <select id="ansWinner">
+        <option value="black">黒勝ち</option>
+        <option value="white">白勝ち</option>
+      </select>
+      <input type="number" id="ansMargin" step="0.5" min="0.5" value="0.5"> 目
+    </span>
+
+    <span id="answerDiffBox" style="display:none;">
+      黒 − 白 ＝ <input type="number" id="ansDiff" step="0.5" placeholder="0.0"> 目
+    </span>
+
+    <button id="submitBtn">答え合わせ</button>
+    <button id="restartBtn">リスタート</button>
   </div>
 
-  <!-- 回答UI（動的に表示/非表示を切替） -->
-  <div class="panel mono inputs" style="margin-top:10px;">
-    <div id="answerDiffBox">
-      <label>最終差（黒−白）: 
-        <input id="ansDiff" type="number" step="0.5" value="0" style="width:8rem;" />
-      </label>
+  <div class="meta-footer" id="metaFooter">
     </div>
+</div>
 
-    <div id="answerWinnerBox" style="display:none;">
-      <label>勝者:
-        <select id="ansWinner">
-          <option value="black" selected>黒</option>
-          <option value="white">白</option>
-        </select>
-      </label>
-      <label>目数:
-        <input id="ansMargin" type="number" step="0.5" value="0.5" style="width:7rem;" />
-      </label>
-    </div>
-
-    <button id="hintBtn" class="btn">ヒント（地オーバーレイ）</button>
-    <button id="submitBtn" class="btn">答え合わせ</button>
-    <button id="restartBtn" class="btn" title="最初からやり直し">リスタート</button>
-  </div>
-
-
-  <div class="status mono" id="status">
-    ヒント: このクイズは「静的局面の簡易地合」です。死石の扱いは問題側で確定済み。空点の領域が片方の石だけに接していればその色の地、両方（またはどちらにも接していない）なら中立です。ヒントは地のオーバーレイのみで数値は表示しません。
-  </div>
-
-  <!-- ▼ メタデータ表示（最下部） -->
-  <footer id="metaFooter" class="meta-footer mono" aria-live="polite">
-    <!-- JSから出典・対局者・日付・結果・ルールなどを挿入 -->
-  </footer>
-
-  <script src="app.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
