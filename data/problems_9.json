@@ -1,0 +1,60 @@
+[
+  {
+    "size": 9,
+    "komi": 6.5,
+    "capB": 0,
+    "capW": 0,
+    "title": "9路: 隅の基本地形（右下白・左上黒）",
+    "note": "DEMO: 実戦風だがサンプル。中立少なめ。",
+    "stones": [
+      {"i":1,"j":1,"c":"B"},{"i":2,"j":1,"c":"B"},{"i":2,"j":2,"c":"B"},
+      {"i":6,"j":6,"c":"W"},{"i":7,"j":6,"c":"W"},{"i":7,"j":7,"c":"W"},
+      {"i":3,"j":4,"c":"B"},{"i":4,"j":4,"c":"W"},{"i":4,"j":5,"c":"W"}
+    ],
+    "source": {
+      "origin": "KGS",
+      "url": "https://gokgs.com/archives.jsp",
+      "players": {"B":"DEMO_PLACEHOLDER","W":"DEMO_PLACEHOLDER"},
+      "result": "B+R"
+    }
+  },
+  {
+    "size": 9,
+    "komi": 6.5,
+    "capB": 0,
+    "capW": 0,
+    "title": "9路: 上辺黒壁・右辺白壁",
+    "note": "DEMO: 実戦風の厚み。中央接触あり。",
+    "stones": [
+      {"i":1,"j":1,"c":"B"},{"i":3,"j":1,"c":"B"},{"i":5,"j":1,"c":"B"},{"i":7,"j":1,"c":"B"},
+      {"i":7,"j":3,"c":"W"},{"i":7,"j":5,"c":"W"},{"i":7,"j":7,"c":"W"},
+      {"i":2,"j":2,"c":"B"},{"i":5,"j":5,"c":"B"},{"i":6,"j":5,"c":"W"}
+    ],
+    "source": {
+      "origin": "KGS",
+      "url": "https://gokgs.com/archives.jsp",
+      "players": {"B":"DEMO_PLACEHOLDER","W":"DEMO_PLACEHOLDER"},
+      "result": "W+3.5"
+    }
+  },
+  {
+    "size": 9,
+    "komi": 6.5,
+    "capB": 0,
+    "capW": 0,
+    "title": "9路: 左下黒囲い・右上白小地",
+    "note": "DEMO: 斜め境界演出。中立が出やすい。",
+    "stones": [
+      {"i":1,"j":3,"c":"B"},{"i":1,"j":7,"c":"B"},{"i":5,"j":3,"c":"B"},{"i":5,"j":7,"c":"B"},
+      {"i":2,"j":4,"c":"B"},{"i":4,"j":6,"c":"B"},
+      {"i":5,"j":1,"c":"W"},{"i":7,"j":3,"c":"W"},
+      {"i":4,"j":4,"c":"W"},{"i":5,"j":5,"c":"W"}
+    ],
+    "source": {
+      "origin": "KGS",
+      "url": "https://gokgs.com/archives.jsp",
+      "players": {"B":"DEMO_PLACEHOLDER","W":"DEMO_PLACEHOLDER"},
+      "result": "B+R"
+    }
+  }
+]

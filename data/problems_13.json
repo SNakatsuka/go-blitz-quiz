@@ -1,0 +1,47 @@
+[
+  {
+    "size": 13,
+    "komi": 6.5,
+    "capB": 0,
+    "capW": 0,
+    "title": "13路: 左上黒広域・右下白小地",
+    "note": "DEMO: 中央は中立傾向。",
+    "stones": [
+      {"i":3,"j":3,"c":"B"},{"i":3,"j":6,"c":"B"},{"i":6,"j":3,"c":"B"},{"i":6,"j":6,"c":"B"},
+      {"i":8,"j":8,"c":"W"},{"i":10,"j":10,"c":"W"},
+      {"i":5,"j":8,"c":"B"},{"i":6,"j":7,"c":"B"},
+      {"i":9,"j":3,"c":"W"},{"i":10,"j":4,"c":"W"}
+    ],
+    "source": {"origin":"KGS","url":"https://gokgs.com/archives.jsp","players":{"B":"DEMO_PLACEHOLDER","W":"DEMO_PLACEHOLDER"},"result":"B+R"}
+  },
+  {
+    "size": 13,
+    "komi": 6.5,
+    "capB": 0,
+    "capW": 0,
+    "title": "13路: 黒縦厚＋白右上・下辺",
+    "note": "DEMO: 辺地の見極め問題。",
+    "stones": [
+      {"i":2,"j":3,"c":"B"},{"i":2,"j":6,"c":"B"},{"i":4,"j":8,"c":"B"},{"i":6,"j":9,"c":"B"},
+      {"i":8,"j":2,"c":"W"},{"i":11,"j":5,"c":"W"},
+      {"i":6,"j":11,"c":"W"},{"i":8,"j":11,"c":"W"},
+      {"i":2,"j":8,"c":"B"},{"i":5,"j":5,"c":"B"}
+    ],
+    "source": {"origin":"KGS","url":"https://gokgs.com/archives.jsp","players":{"B":"DEMO_PLACEHOLDER","W":"DEMO_PLACEHOLDER"},"result":"W+R"}
+  },
+  {
+    "size": 13,
+    "komi": 6.5,
+    "capB": 0,
+    "capW": 0,
+    "title": "13路: 中央横壁＋左右小地",
+    "note": "DEMO: 壁で分割、中立あり。",
+    "stones": [
+      {"i":3,"j":5,"c":"B"},{"i":5,"j":5,"c":"B"},{"i":7,"j":5,"c":"B"},{"i":9,"j":5,"c":"B"},
+      {"i":9,"j":8,"c":"W"},{"i":11,"j":10,"c":"W"},
+      {"i":2,"j":2,"c":"B"},{"i":4,"j":4,"c":"B"},
+      {"i":6,"j":6,"c":"W"},{"i":7,"j":6,"c":"B"}
+    ],
+    "source": {"origin":"KGS","url":"https://gokgs.com/archives.jsp","players":{"B":"DEMO_PLACEHOLDER","W":"DEMO_PLACEHOLDER"},"result":"B+3.5"}
+  }
+]

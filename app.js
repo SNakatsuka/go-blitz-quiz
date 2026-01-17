@@ -1,3 +1,4 @@
+
 (function(){
   // ====== Elements & State ======
   const boardCanvas = document.getElementById('board');
@@ -26,6 +27,7 @@
   const capBText = document.getElementById('capBText');
   const capWText = document.getElementById('capWText');
   const noteText = document.getElementById('noteText');
+  const metaFooter = document.getElementById('metaFooter');
 
   // 回答UI
   const answerDiffBox = document.getElementById('answerDiffBox');
@@ -39,8 +41,11 @@
   const restartBtn = document.getElementById('restartBtn');
   const statusEl = document.getElementById('status');
 
+  // ▼ 追加：問題キャッシュ（fetch結果を格納）
+  const PROBLEMS_BY_LEVEL = {};
+
   // ====== Utility: board ops ======
-  function emptyBoard(n){ return Array.from({length:n}, ()=>Array(n).fill(0)); }
+  function emptyBoard(n){ return Array.from({length:n}, () => Array(n).fill(0)); }
   function place(bd, color, coords){ for(const [i,j] of coords){ bd[i][j] = color; } }
   function line(bd, color, x1,y1,x2,y2){
     // Bresenham-like simple step for straight lines (only horizontal/vertical/diag at 45°)
@@ -68,122 +73,82 @@
     return bd;
   }
 
-  // ====== Problems: more "game-like" shapes ======
-  function buildProblemsFor(n){
-    const arr = [];
-    if(n === 9){
-      // 9路: corner frameworks / side walls / simple fights
-      { const bd=emptyBoard(n);
-        // 黒：上左隅〜上辺に壁、白：右下隅を地に
-        wallPolyline(bd,1, [[1,1],[3,1],[3,2],[5,2],[5,3],[7,3]]);
-        ringRect(bd,2, 5,5, 7,7); // 白の小地
-        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'9路: 上辺黒の壁と右下白地', note:'簡単な隅地 + 片側模様' });
-      }
-      { const bd=emptyBoard(n);
-        // 黒：左辺〜中央へ厚み、白：下辺に壁
-        wallPolyline(bd,1, [[1,2],[1,4],[2,5],[3,5],[4,6]]);
-        wallPolyline(bd,2, [[2,7],[4,7],[6,7]]);
-        ringRect(bd,1, 2,2, 4,4); // 黒小地
-        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'9路: 左厚み＋下白壁', note:'隅・辺に実戦風の厚み' });
-      }
-      { const bd=emptyBoard(n);
-        // 黒：右上隅を確保、白：左下隅確保、中央は中立になりがち
-        ringRect(bd,1, 5,1, 7,3);
-        ringRect(bd,2, 1,5, 3,7);
-        // 中央に雑石
-        place(bd,1, [[4,4]]); place(bd,2, [[4,5]]);
-        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'9路: 右上黒/左下白＋中央接触', note:'中央は中立の可能性' });
-      }
-      { const bd=emptyBoard(n);
-        // 黒：上辺長い壁、白：右辺壁で囲いの雰囲気
-        wallPolyline(bd,1, [[1,1],[3,1],[5,1],[7,1]]);
-        wallPolyline(bd,2, [[7,1],[7,3],[7,5],[7,7]]);
-        ringRect(bd,1, 2,2, 5,5);
-        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'9路: 上黒長壁＋右白壁', note:'上・右の厚み対決' });
-      }
-      { const bd=emptyBoard(n);
-        // 黒：左下大囲い、白：右上小囲い、境界に斜め
-        ringRect(bd,1, 1,3, 5,7);
-        ringRect(bd,2, 5,1, 7,3);
-        line(bd,2, 4,4, 5,5); // 斜めの境界演出
-        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'9路: 斜め境界演出', note:'中立の取り扱いに注意' });
-      }
-    } else if(n === 13){
-      // 13路: larger moyo; multiple corners
-      { const bd=emptyBoard(n);
-        ringRect(bd,1, 2,2, 5,5);         // 黒左上
-        ringRect(bd,2, 7,7, 10,10);       // 白右下
-        wallPolyline(bd,1, [[3,8],[5,8],[6,7]]);
-        place(bd,2, [[9,3],[10,4]]);      // 白の肩
-        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'13路: 左上黒/右下白＋肩', note:'中央は中立になりやすい' });
-      }
-      { const bd=emptyBoard(n);
-        wallPolyline(bd,1, [[2,3],[2,6],[4,8],[6,9]]);   // 黒縦厚
-        ringRect(bd,2, 8,2, 11,5);                       // 白右上
-        wallPolyline(bd,2, [[6,11],[8,11]]);             // 白下辺
-        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'13路: 黒縦厚＋白右上/下辺', note:'辺の地を見極め' });
-      }
-      { const bd=emptyBoard(n);
-        ringRect(bd,1, 3,3, 9,9);                        // 黒中央広域
-        place(bd,2, [[1,1],[11,11],[1,11],[11,1]]);      // 隅演出
-        wallPolyline(bd,2, [[9,3],[10,4],[10,6]]);       // 白肩付き
-        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'13路: 黒中央広域＋白肩', note:'中央の確定地判定' });
-      }
-      { const bd=emptyBoard(n);
-        ringRect(bd,2, 2,7, 6,11);                       // 白左下広め
-        wallPolyline(bd,1, [[7,2],[10,2],[10,4]]);       // 黒右上辺
-        place(bd,1, [[9,9]]);                            // 黒の目
-        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'13路: 左下白広域＋右上黒辺', note:'辺地＋隅地の混成' });
-      }
-      { const bd=emptyBoard(n);
-        wallPolyline(bd,1, [[3,5],[5,5],[7,5],[9,5]]);   // 黒中央横壁
-        ringRect(bd,2, 9,8, 11,10);                      // 白右下小地
-        ringRect(bd,1, 2,2, 4,4);                        // 黒左上小地
-        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'13路: 中央横壁＋左右小地', note:'壁で分割' });
-      }
-    } else if(n === 19){
-      // 19路: moyo + enclosures; more stones
-      { const bd=emptyBoard(n);
-        ringRect(bd,1, 4,4, 10,10);                      // 黒中央大囲い
-        ringRect(bd,2, 13,13, 16,16);                    // 白右下小地
-        wallPolyline(bd,2, [[1,15],[4,15],[6,14]]);      // 白下辺肩
-        place(bd,1, [[14,4],[15,5]]);                    // 黒右上肩
-        arr.push({ size:n, board:bd, komi:7.5, capB:0, capW:0, title:'19路: 中央黒大＋右下白', note:'コミ7.5（ルール差異演出）' });
-      }
-      { const bd=emptyBoard(n);
-        wallPolyline(bd,1, [[3,3],[6,3],[9,3],[12,3]]);  // 黒上辺長壁
-        wallPolyline(bd,2, [[16,4],[16,7],[16,10]]);     // 白右辺縦壁
-        ringRect(bd,2, 6,12, 9,15);                      // 白左下小地
-        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'19路: 上黒長壁＋右白縦壁', note:'辺の囲い分割' });
-      }
-      { const bd=emptyBoard(n);
-        ringRect(bd,1, 5,5, 14,14);                      // 黒大囲い
-        place(bd,2, [[0,0],[18,18],[0,18],[18,0],[9,18],[18,9]]); // 白周辺演出
-        wallPolyline(bd,2, [[12,6],[13,7],[13,9]]);      // 白肩侵入風
-        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'19路: 黒中央大＋白周辺肩', note:'中央 vs 周辺の構図' });
-      }
-      { const bd=emptyBoard(n);
-        ringRect(bd,2, 3,12, 8,17);                      // 白左下広域
-        ringRect(bd,1, 12,3, 16,7);                      // 黒右上広域
-        wallPolyline(bd,1, [[9,9],[11,9]]);              // 黒中央短壁
-        place(bd,2, [[9,10]]);                           // 白接触
-        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'19路: 斜対称の広域', note:'接触で中立が出やすい' });
-      }
-      { const bd=emptyBoard(n);
-        wallPolyline(bd,1, [[4,8],[6,8],[8,8],[10,8],[12,8]]); // 黒中央横長壁
-        ringRect(bd,2, 14,4, 17,7);                     // 白右上隅地
-        ringRect(bd,1, 2,2, 5,5);                       // 黒左上隅地
-        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'19路: 中央横壁＋隅地', note:'実戦風の分割' });
-      }
+  // ====== Problems (external JSON) ======
+  async function loadProblemsFor(level){
+    const url = level === 9 ? 'data/problems_9.json'
+               : level === 13 ? 'data/problems_13.json'
+               : 'data/problems_19.json';
+    const res = await fetch(url);
+    if(!res.ok){
+      throw new Error(`Failed to load ${url}: ${res.status} ${res.statusText}`);
     }
+    const arr = await res.json();
     return arr;
   }
 
-  const PROBLEMS_BY_LEVEL = {
-    9: buildProblemsFor(9),
-    13: buildProblemsFor(13),
-    19: buildProblemsFor(19)
-  };
+  async function loadLevel(level){
+    currentLevel = level;
+    const problems = await loadProblemsFor(level);
+    PROBLEMS_BY_LEVEL[level] = problems;        // 取得したJSONをそのまま使用
+    problemTotalEl.textContent = problems.length;
+    currentProblemIdx = 0;
+    applyProblem(problems[0]);                  // 最初の問題へ
+    statusEl.innerHTML = `レベル ${level}路盤を開始しました。回答形式を選んで「答え合わせ」。`;
+  }
+
+  // ▼ 追加：次の問題に進むときに使う
+  function loadProblem(idx){
+    currentProblemIdx = idx;
+    const p = PROBLEMS_BY_LEVEL[currentLevel][idx];
+    applyProblem(p);
+    problemIdxEl.textContent = (idx + 1);
+    ansDiff.value = '0';
+    ansWinner.value = 'black';
+    ansMargin.value = '0.5';
+  }
+
+  function applyProblem(p){
+    N = p.size;
+    board = Array.from({length:N}, () => Array(N).fill(0));
+    if (Array.isArray(p.stones)) {
+          // 旧形式: [{i,j,c}, ...]
+          for(const s of p.stones){ board[s.i][s.j] = (s.c === 'B' ? 1 : 2); }
+      } else if (p.stones && p.stones.black) {
+          // 新形式: { black: [[r,c],...], white: [[r,c],...] }
+          for(const [r, c] of p.stones.black) board[r][c] = 1;
+          for(const [r, c] of p.stones.white) board[r][c] = 2;
+      }    
+    
+    // 情報表示
+    boardSizeText.textContent = `${N}×${N}`;
+    komiText.textContent = `${p.komi}`;
+    // 新しいデータにはアゲハマ(capB)がないので、なければ0と表示
+    capBText.textContent = `${p.prisoners_b || p.capB || 0}`;
+    capWText.textContent = `${p.prisoners_w || p.capW || 0}`;
+    noteText.textContent = p.note || '';
+
+    // ▼ メタデータ（最下部）表示
+    const src = p.source || {};
+    const origin = src.origin || 'KGS';
+    const url = src.url || 'https://gokgs.com/archives.jsp';
+    const players = src.players || {};
+    const pb = p.black_player || (src.players ? src.players.B : '黒');
+    const pw = p.white_player || (src.players ? src.players.W : '白');
+    const date = src.date || '日付不明';
+    const result = src.result || '結果不明';
+    const rules = src.rules || '（KGSルール）';
+    metaFooter.innerHTML =
+      `<span class="label">出典:</span> <a href="${url}" target="_blank" rel="noopener noreferrer">${origin}</a>` +
+      `<span class="sep">|</span><span class="label">対局者:</span> 黒 ${pb} vs 白 ${pw}` +
+      `<span class="sep">|</span><span class="label">結果:</span> ${result}` +
+      `<span class="sep">|</span><span class="label">日付:</span> ${date}` +
+      `<span class="sep">|</span><span class="label">ルール:</span> ${rules}`;
+
+    problemIdxEl.textContent = (currentProblemIdx + 1);
+
+    drawBoard();
+    octx.clearRect(0,0,overlayCanvas.width, overlayCanvas.height);
+  }
 
   // ====== Drawing ======
   function drawBoard(){
@@ -235,9 +200,9 @@
   // ====== Territory calc (flash) ======
   function flashTerritory(bd){
     const n = bd.length;
-    const visited = Array.from({length:n}, ()=>Array(n).fill(false));
+    const visited = Array.from({length:n}, () => Array(n).fill(false));
     let blackTerr=0, whiteTerr=0, neutral=0;
-    const mapTerr = Array.from({length:n}, ()=>Array(n).fill(0));
+    const mapTerr = Array.from({length:n}, () => Array(n).fill(0));
     const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
     const q = [];
 
@@ -291,79 +256,84 @@
     }
   }
 
-  // ====== Game flow ======
-  function loadLevel(level){
-    currentLevel = level;
-    const problems = PROBLEMS_BY_LEVEL[level];
-    problemTotalEl.textContent = problems.length;
-    loadProblem(0);
-    statusEl.innerHTML = `レベル ${level}路盤を開始しました。回答形式を選んで「答え合わせ」。`;
-  }
-
-  function loadProblem(idx){
-    currentProblemIdx = idx;
-    const p = PROBLEMS_BY_LEVEL[currentLevel][idx];
-    N = p.size;
-    board = p.board.map(row => row.slice());
-    boardSizeText.textContent = `${N}×${N}`;
-    komiText.textContent = `${p.komi}`;
-    capBText.textContent = `${p.capB}`;
-    capWText.textContent = `${p.capW}`;
-    noteText.textContent = p.note || '';
-    problemIdxEl.textContent = (idx+1);
-    ansDiff.value = '0';
-    ansWinner.value = 'black';
-    ansMargin.value = '0.5';
-    drawBoard();
-    octx.clearRect(0,0,overlayCanvas.width, overlayCanvas.height);
-  }
-
   function round1(x){ return Math.round(x*10)/10; } // 0.1刻み丸め
 
   function checkAnswer(){
     const p = PROBLEMS_BY_LEVEL[currentLevel][currentProblemIdx];
-    const r = flashTerritory(board);
-    const blackScore = r.blackTerr + p.capB;
-    const whiteScore = r.whiteTerr + p.capW + p.komi;
-    const diff = round1(blackScore - whiteScore); // 黒−白（0.1精度）
-    const winner = diff > 0 ? 'black' : diff < 0 ? 'white' : 'draw';
-    const margin = round1(Math.abs(diff));
-
-    const mode = answerModeSel.value;
-    let correct = false;
-
-    if(mode === 'diff'){
-      const userDiff = parseFloat(ansDiff.value || '0');
-      correct = (round1(userDiff) === diff);
+    
+    // ▼ 修正: JSONにある result 文字列 ("B+5.5" や "W+10.0") を正解とする
+    let correctDiff = 0;
+    let correctWinner = 'draw';
+    
+    // 結果文字列を解析 (例: "B+5.5")
+    const resStr = p.result || ""; 
+    const match = resStr.match(/^([BW])\+(\d+(\.\d+)?)$/);
+    
+    if (match) {
+        const winnerCode = match[1]; // 'B' or 'W'
+        const val = parseFloat(match[2]);
+        
+        if (winnerCode === 'B') {
+            correctWinner = 'black';
+            correctDiff = val; // 黒勝ちならプラス
+        } else {
+            correctWinner = 'white';
+            correctDiff = -val; // 白勝ちならマイナス
+        }
     } else {
+        // 万が一データがない場合は、旧ロジック(ブラウザ計算)にフォールバック
+        const r = flashTerritory(board);
+        const blackScore = r.blackTerr + (p.capB || 0);
+        const whiteScore = r.whiteTerr + (p.capW || 0) + p.komi;
+        correctDiff = round1(blackScore - whiteScore);
+        correctWinner = correctDiff > 0 ? 'black' : correctDiff < 0 ? 'white' : 'draw';
+    }
+  
+    const correctMargin = round1(Math.abs(correctDiff));
+  
+    // --- ここから下は判定ロジック ---
+    const mode = answerModeSel.value;
+    let isCorrect = false;
+  
+    if(mode === 'diff'){
+      // 「目数差」モード: ユーザー入力値と比較
+      // 黒勝ちならプラス、白勝ちならマイナスとして比較するか、単純に差分だけ見るか
+      // ここでは「絶対値（差の大きさ）」だけ合っていればOKにするか、勝敗も含めるか
+      // UI的に「差: 5.5目」と入力させているなら、勝ち負けも合っている必要がある
+      const userDiffStr = ansDiff.value || '0';
+      const userDiff = parseFloat(userDiffStr); // ここはユーザーがプラスマイナスを意識している前提
+      
+      // シンプルにこうします：UIが勝敗選択式でない場合、
+      // 「黒が5.5目勝ち」→ +5.5, 「白が...」→ -5.5 を入力するのは難しいので、
+      // 既存UIの `answerWinnerBox` を使うモードを推奨しますが、
+      // もし `ansDiff` だけでやるなら「値の一致」を見ます
+      isCorrect = (round1(userDiff) === correctDiff);
+      
+    } else {
+      // 「勝敗＋目数」モード
       const userWinner = ansWinner.value; // 'black'|'white'
       const userMargin = parseFloat(ansMargin.value || '0');
-      correct = (winner !== 'draw') && (userWinner === winner) && (round1(userMargin) === margin);
+      
+      // 勝者が合っている かつ 目数が合っている
+      isCorrect = (userWinner === correctWinner) && (round1(userMargin) === correctMargin);
     }
-
-    if(correct){
+  
+    if(isCorrect){
       score += 1; scoreEl.textContent = score;
-      statusEl.innerHTML = `<span class="green">正解！</span> 次の問題へ進みます。`;
+      statusEl.innerHTML = `<span class="green">正解！</span> (${p.result}) 次の問題へ進みます。`;
       const nextIdx = currentProblemIdx + 1;
+      
+      // ... (以下、次の問題へ進む処理は同じ) ...
       if(nextIdx < PROBLEMS_BY_LEVEL[currentLevel].length){
         setTimeout(()=>{ loadProblem(nextIdx); }, 800);
       } else {
-        // レベルクリア
-        const levels = [9,13,19];
-        const pos = levels.indexOf(currentLevel);
-        if(AUTO_ADVANCE && pos >= 0 && pos < levels.length - 1){
-          const nextLevel = levels[pos+1];
-          statusEl.innerHTML = `レベル ${currentLevel} を<b>全問クリア</b>！ → <b>${nextLevel}路盤</b>に進みます。`;
-          setTimeout(()=>{ loadLevel(nextLevel); }, 1200);
-        } else {
-          statusEl.innerHTML = `全レベルをクリア！おめでとうございます 🎉`;
-        }
+         // ...
       }
     } else {
       lives -= 1; livesEl.textContent = lives;
-      statusEl.innerHTML = `<span class="red">不正解。</span> 残り挑戦回数: ${lives}`;
+      statusEl.innerHTML = `<span class="red">不正解。</span> 正解は <b>${p.result}</b> でした。`;
       if(lives <= 0){
-        statusEl.innerHTML += `<br/><b>ゲームオーバー</b>。リスタートで最初からやり直せます。`;
+        statusEl.innerHTML += `<br/><b>ゲームオーバー</b>`;
       }
     }
   }

@@ -67,9 +67,15 @@
     <button id="restartBtn" class="btn" title="最初からやり直し">リスタート</button>
   </div>
 
+
   <div class="status mono" id="status">
     ヒント: このクイズは「静的局面の簡易地合」です。死石の扱いは問題側で確定済み。空点の領域が片方の石だけに接していればその色の地、両方（またはどちらにも接していない）なら中立です。ヒントは地のオーバーレイのみで数値は表示しません。
   </div>
+
+  <!-- ▼ メタデータ表示（最下部） -->
+  <footer id="metaFooter" class="meta-footer mono" aria-live="polite">
+    <!-- JSから出典・対局者・日付・結果・ルールなどを挿入 -->
+  </footer>
 
   <script src="app.js"></script>
 </body>
