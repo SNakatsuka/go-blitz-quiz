@@ -3,17 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>囲碁 地合目利きクイズ (19路盤)</title>
+  <title>囲碁 地合目利きクイズ</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div id="game-container">
-  <h2>囲碁 地合目利きクイズ (19路盤)</h2>
+  <h2>囲碁 地合目利きクイズ</h2>
   
+  <div class="mode-selector" style="text-align:center; margin-bottom:10px;">
+    <label style="font-weight:bold; margin-right:8px;">サイズ選択:</label>
+    <select id="boardSizeSelect">
+      <option value="9" selected>9路盤 (サクサク)</option>
+      <option value="19">19路盤 (ガッツリ)</option>
+    </select>
+  </div>
   <div class="status-bar">
     <span>問題 <span id="problemIdx">--</span> / <span id="problemTotal">--</span></span>
-    <span>残りライフ: <span id="lives">3</span></span>
+    <span>ライフ: <span id="lives">3</span></span>
     <span>スコア: <span id="score">0</span></span>
   </div>
 
@@ -45,8 +52,7 @@
     <button id="restartBtn">リスタート</button>
   </div>
 
-  <div class="meta-footer" id="metaFooter">
-    </div>
+  <div class="meta-footer" id="metaFooter"></div>
 </div>
 
 <script src="app.js"></script>
