@@ -7,9 +7,15 @@
   const octx = overlayCanvas.getContext('2d');
   const margin = 30;
 
-  let N = 9;    // board size
-  let board = []; // 0 empty, 1 black, 2 white
+  let N = 9;         // board size
+  let board = [];    // 0 empty, 1 black, 2 white
+  let lives = 3;
+  let score = 0;
+  let currentProblemIdx = 0;
+  let currentLevel = 9; // 9, 13, 19
+  const AUTO_ADVANCE = true; // 全問クリアで自動的に次レベルへ
 
+  const levelSelect = document.getElementById('levelSelect');
   const problemIdxEl = document.getElementById('problemIdx');
   const problemTotalEl = document.getElementById('problemTotal');
   const livesEl = document.getElementById('lives');
@@ -25,15 +31,10 @@
 
   const hintBtn = document.getElementById('hintBtn');
   const submitBtn = document.getElementById('submitBtn');
-  const revealBtn = document.getElementById('revealBtn');
   const restartBtn = document.getElementById('restartBtn');
   const statusEl = document.getElementById('status');
 
-  let lives = 3;
-  let score = 0;
-  let currentProblemIdx = 0;
-
-  // ====== Problems ======
+  // ====== Problems per level ======
   function emptyBoard(n){ return Array.from({length:n}, ()=>Array(n).fill(0)); }
   function rectEnclosure(bd, color, x1,y1,x2,y2){
     const n = bd.length;
@@ -43,44 +44,75 @@
     for(let j=miny;j<=maxy;j++){ bd[minx][j] = color; bd[maxx][j] = color; }
     return bd;
   }
-  function makeProblems(){
-    const problems = [];
-    // P1
-    { const n=9, bd=emptyBoard(n);
-      rectEnclosure(bd,1,1,1,3,3);
-      rectEnclosure(bd,2,5,5,7,7);
-      problems.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'基本の囲い 1' });
+  function buildProblemsFor(n){
+    const arr = [];
+    if(n === 9){
+      // 9路：サンプル5問
+      { const bd=emptyBoard(n);
+        rectEnclosure(bd,1,1,1,3,3); rectEnclosure(bd,2,5,5,7,7);
+        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'9路: 基本の囲い 1' });
+      }
+      { const bd=emptyBoard(n);
+        rectEnclosure(bd,1,1,1,5,3); rectEnclosure(bd,2,6,1,8,2);
+        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'9路: 基本の囲い 2' });
+      }
+      { const bd=emptyBoard(n);
+        rectEnclosure(bd,2,1,5,3,7); rectEnclosure(bd,1,5,1,8,4);
+        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'9路: 左右に大囲い' });
+      }
+      { const bd=emptyBoard(n);
+        rectEnclosure(bd,1,2,2,6,6); bd[0][0]=2; bd[8][8]=2; bd[0][8]=2; bd[8][0]=2;
+        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'9路: 中央大囲い' });
+      }
+      { const bd=emptyBoard(n);
+        rectEnclosure(bd,1,1,1,4,4); bd[1][1]=2; bd[4][4]=2;
+        rectEnclosure(bd,2,5,5,8,8); bd[5][5]=1; bd[8][8]=1;
+        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'9路: 境界演出付き' });
+      }
+    } else if(n === 13){
+      // 13路：サンプル3問
+      { const bd=emptyBoard(n);
+        rectEnclosure(bd,1,2,2,6,6);   // 黒の大きめ囲い
+        rectEnclosure(bd,2,8,8,10,10); // 白の小さめ囲い
+        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'13路: 黒大/白小' });
+      }
+      { const bd=emptyBoard(n);
+        rectEnclosure(bd,2,1,8,4,11);  // 白の縦長囲い
+        rectEnclosure(bd,1,7,1,11,5);  // 黒の横長囲い
+        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'13路: 縦横の大囲い' });
+      }
+      { const bd=emptyBoard(n);
+        rectEnclosure(bd,1,3,3,9,9);   // 黒の広い囲い
+        // 周辺に白石少々
+        bd[0][0]=2; bd[12][12]=2; bd[0][12]=2; bd[12][0]=2;
+        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'13路: 中央広域' });
+      }
+    } else if(n === 19){
+      // 19路：サンプル3問
+      { const bd=emptyBoard(n);
+        rectEnclosure(bd,1,3,3,9,9);     // 黒 中央9x9枠（内側広い）
+        rectEnclosure(bd,2,12,12,15,15); // 白 小さめ
+        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'19路: 中央九路型 + 白小' });
+      }
+      { const bd=emptyBoard(n);
+        rectEnclosure(bd,2,1,10,6,16);   // 白 縦長大囲い
+        rectEnclosure(bd,1,10,1,16,6);   // 黒 横長大囲い
+        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'19路: 十字の大囲い' });
+      }
+      { const bd=emptyBoard(n);
+        rectEnclosure(bd,1,4,4,14,14);   // 黒 大囲い
+        // 周辺白石で演出
+        bd[0][0]=2; bd[18][18]=2; bd[0][18]=2; bd[18][0]=2; bd[9][18]=2; bd[18][9]=2;
+        arr.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'19路: 中央大囲い + 周辺白' });
+      }
     }
-    // P2
-    { const n=9, bd=emptyBoard(n);
-      rectEnclosure(bd,1,1,1,5,3);
-      rectEnclosure(bd,2,6,1,8,2);
-      problems.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'基本の囲い 2' });
-    }
-    // P3
-    { const n=9, bd=emptyBoard(n);
-      rectEnclosure(bd,2,1,5,3,7);
-      rectEnclosure(bd,1,5,1,8,4);
-      problems.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'左右に大囲い' });
-    }
-    // P4
-    { const n=9, bd=emptyBoard(n);
-      rectEnclosure(bd,1,2,2,6,6);
-      bd[0][0]=2; bd[8][8]=2; bd[0][8]=2; bd[8][0]=2;
-      problems.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'中央大囲い' });
-    }
-    // P5
-    { const n=9, bd=emptyBoard(n);
-      rectEnclosure(bd,1,1,1,4,4);
-      bd[1][1]=2; bd[4][4]=2;
-      rectEnclosure(bd,2,5,5,8,8);
-      bd[5][5]=1; bd[8][8]=1;
-      problems.push({ size:n, board:bd, komi:6.5, capB:0, capW:0, title:'境界演出付き' });
-    }
-    return problems;
+    return arr;
   }
-  const PROBLEMS = makeProblems();
-  problemTotalEl.textContent = PROBLEMS.length;
+  const PROBLEMS_BY_LEVEL = {
+    9: buildProblemsFor(9),
+    13: buildProblemsFor(13),
+    19: buildProblemsFor(19)
+  };
 
   // ====== Drawing ======
   function drawBoard(){
@@ -99,15 +131,15 @@
       bctx.beginPath(); bctx.moveTo(margin, y); bctx.lineTo(w - margin, y); bctx.stroke();
     }
 
-    const hoshiIdx = [2,4,6];
+    // Hoshi points
+    const hoshi = getHoshiPoints(N);
     bctx.fillStyle = '#603e18';
-    for(const i of hoshiIdx){
-      for(const j of hoshiIdx){
-        const {cx, cy} = ijToCoord(i,j, step);
-        bctx.beginPath(); bctx.arc(cx, cy, 4, 0, Math.PI*2); bctx.fill();
-      }
+    for(const [i,j] of hoshi){
+      const {cx, cy} = ijToCoord(i,j, step);
+      bctx.beginPath(); bctx.arc(cx, cy, 4, 0, Math.PI*2); bctx.fill();
     }
 
+    // Stones
     for(let i=0;i<N;i++){
       for(let j=0;j<N;j++){
         const s = board[i][j];
@@ -123,11 +155,15 @@
     }
     octx.clearRect(0,0,overlayCanvas.width, overlayCanvas.height);
   }
-  function ijToCoord(i,j, step){
-    return { cx: margin + i*step, cy: margin + j*step };
+  function ijToCoord(i,j, step){ return { cx: margin + i*step, cy: margin + j*step }; }
+  function getHoshiPoints(n){
+    if(n===9)  { const idx=[2,4,6]; return idx.flatMap(i => idx.map(j => [i,j])); }
+    if(n===13) { const idx=[3,6,9]; return idx.flatMap(i => idx.map(j => [i,j])); }
+    if(n===19) { const idx=[3,9,15]; return idx.flatMap(i => idx.map(j => [i,j])); }
+    return []; // fallback
   }
 
-  // ====== Territory calc ======
+  // ====== Territory calc (flash) ======
   function flashTerritory(bd){
     const n = bd.length;
     const visited = Array.from({length:n}, ()=>Array(n).fill(false));
@@ -171,7 +207,7 @@
 
   function drawTerritoryOverlay(mapTerr){
     octx.clearRect(0,0,overlayCanvas.width, overlayCanvas.height);
-    const w = overlayCanvas.width, h = overlayCanvas.height;
+    const w = overlayCanvas.width;
     const step = (w - margin*2) / (N - 1);
     for(let i=0;i<N;i++){
       for(let j=0;j<N;j++){
@@ -187,9 +223,17 @@
   }
 
   // ====== Game flow ======
+  function loadLevel(level){
+    currentLevel = level;
+    const problems = PROBLEMS_BY_LEVEL[level];
+    problemTotalEl.textContent = problems.length;
+    loadProblem(0);
+    statusEl.innerHTML = `レベル ${level}路盤を開始しました。黒地と白地を入力して「答え合わせ」。`;
+  }
+
   function loadProblem(idx){
     currentProblemIdx = idx;
-    const p = PROBLEMS[idx];
+    const p = PROBLEMS_BY_LEVEL[currentLevel][idx];
     N = p.size;
     board = p.board.map(row => row.slice());
     boardSizeText.textContent = `${N}×${N}`;
@@ -199,13 +243,12 @@
     problemIdxEl.textContent = (idx+1);
     ansBlackTerr.value = '0';
     ansWhiteTerr.value = '0';
-    statusEl.innerHTML = `問題「${p.title}」：黒地と白地を入力して「答え合わせ」。`;
     drawBoard();
     octx.clearRect(0,0,overlayCanvas.width, overlayCanvas.height);
   }
 
   function checkAnswer(){
-    const p = PROBLEMS[currentProblemIdx];
+    const p = PROBLEMS_BY_LEVEL[currentLevel][currentProblemIdx];
     const result = flashTerritory(board);
     const userB = parseInt(ansBlackTerr.value || '0', 10);
     const userW = parseInt(ansWhiteTerr.value || '0', 10);
@@ -213,17 +256,25 @@
     const correct = (userB === result.blackTerr) && (userW === result.whiteTerr);
     if(correct){
       score += 1; scoreEl.textContent = score;
-      statusEl.innerHTML = `<span class="green">正解！</span> 黒地 ${result.blackTerr} / 白地 ${result.whiteTerr} / 中立 ${result.neutral}<br/>` +
-        `最終計（参考）: 黒 ${ (result.blackTerr + p.capB).toFixed(1) } vs 白 ${(result.whiteTerr + p.capW + p.komi).toFixed(1)}（コミ適用）`;
+      statusEl.innerHTML = `<span class="green">正解！</span> 次の問題へ進みます。`;
       const nextIdx = currentProblemIdx + 1;
-      if(nextIdx < PROBLEMS.length){
-        setTimeout(()=>{ loadProblem(nextIdx); }, 900);
+      if(nextIdx < PROBLEMS_BY_LEVEL[currentLevel].length){
+        setTimeout(()=>{ loadProblem(nextIdx); }, 800);
       } else {
-        statusEl.innerHTML += `<br/><b>全問クリア！</b> おめでとうございます 🎉`;
+        // レベルクリア
+        const levels = [9,13,19];
+        const pos = levels.indexOf(currentLevel);
+        if(AUTO_ADVANCE && pos >= 0 && pos < levels.length - 1){
+          const nextLevel = levels[pos+1];
+          statusEl.innerHTML = `レベル ${currentLevel} を<b>全問クリア</b>！ → <b>${nextLevel}路盤</b>に進みます。`;
+          setTimeout(()=>{ loadLevel(nextLevel); }, 1200);
+        } else {
+          statusEl.innerHTML = `全レベルをクリア！おめでとうございます 🎉`;
+        }
       }
     } else {
       lives -= 1; livesEl.textContent = lives;
-      statusEl.innerHTML = `<span class="red">不正解。</span> 残り挑戦回数: ${lives}　（ヒントや答え表示で確認できます）`;
+      statusEl.innerHTML = `<span class="red">不正解。</span> 残り挑戦回数: ${lives}`;
       if(lives <= 0){
         statusEl.innerHTML += `<br/><b>ゲームオーバー</b>。リスタートで最初からやり直せます。`;
       }
@@ -234,8 +285,9 @@
   hintBtn.addEventListener('click', ()=>{
     const r = flashTerritory(board);
     drawTerritoryOverlay(r.mapTerr);
-    statusEl.innerHTML = `地の可視化：黒地 ${r.blackTerr} / 白地 ${r.whiteTerr} / 中立 ${r.neutral}`;
+    statusEl.innerHTML = `地オーバーレイを表示中（数値のヒントは表示しません）。`;
   });
+
   submitBtn.addEventListener('click', ()=>{
     if(lives <= 0){
       statusEl.innerHTML = `<span class="red">挑戦回数がありません。</span> リスタートしてください。`;
@@ -243,22 +295,21 @@
     }
     checkAnswer();
   });
-  revealBtn.addEventListener('click', ()=>{
-    const p = PROBLEMS[currentProblemIdx];
-    const r = flashTerritory(board);
-    ansBlackTerr.value = r.blackTerr;
-    ansWhiteTerr.value = r.whiteTerr;
-    drawTerritoryOverlay(r.mapTerr);
-    statusEl.innerHTML = `答え：黒地 ${r.blackTerr} / 白地 ${r.whiteTerr} / 中立 ${r.neutral}<br/>` +
-      `最終計（参考）: 黒 ${(r.blackTerr + p.capB).toFixed(1)} vs 白 ${(r.whiteTerr + p.capW + p.komi).toFixed(1)}`;
-  });
+
   restartBtn.addEventListener('click', ()=>{
     lives = 3; score = 0;
     livesEl.textContent = lives; scoreEl.textContent = score;
-    loadProblem(0);
-    statusEl.innerHTML = `最初の問題から再開しました。がんばって！`;
+    loadLevel(currentLevel);
+    statusEl.innerHTML = `レベル ${currentLevel} を最初の問題から再開しました。がんばって！`;
+  });
+
+  levelSelect.addEventListener('change', ()=>{
+    lives = 3; score = 0;
+    livesEl.textContent = lives; scoreEl.textContent = score;
+    const level = parseInt(levelSelect.value, 10);
+    loadLevel(level);
   });
 
   // ====== Init ======
-  loadProblem(0);
+  loadLevel(9); // 初期レベルは9路盤
 })();
